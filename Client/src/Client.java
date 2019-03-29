@@ -1,5 +1,5 @@
-package src;
 
+//import java.io.BufferedReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -9,7 +9,7 @@ import java.net.Socket;
 public class Client {
 
 	protected final static int PORT = 2019;
-	protected final static String HOST = "ppti-14-509-07";
+	protected final static String HOST = "ppti-14-503-02";
 
 	public static void main(String[] args) {
 		Socket s = null;

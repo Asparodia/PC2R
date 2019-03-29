@@ -79,6 +79,7 @@ class Connexion(threading.Thread):
         while True:
             request = self.clientSock.recv(DATA)
             reply = (request.decode()).split("/")
+            
             if (reply[0] == "CONNECT"):
                 if(reply[1] in joueurs):
                     m = "Ce pseudo est deja pris\n"
@@ -86,10 +87,10 @@ class Connexion(threading.Thread):
                     del m
                     continue
                 else:
-                    m = "WELCOME\n"
+                    m = "WELCOME/" + str(reply[1]) +"\n"
                     self.clientSock.send(m.encode())
                     del m   
-                    try: #POURQUOI ON FAIT DES TRY CATCH
+                    try:
                         mutexJoueurs.acquire()
                         joueurs[reply[1]] = self
                         if(len(joueurs)==1):
@@ -135,7 +136,6 @@ class Connexion(threading.Thread):
             if(reply[0] == "NEWPOS"):
                 c =reply[1][1:]
                 rc = c.split('Y')
-
                 del c
                 self.ship.posX = float(rc[0])%largeur
                 self.ship.posY = float(rc[1])%hauteur
@@ -187,34 +187,35 @@ class Arena(threading.Thread):
             if(i%100):
                 self.computeCommands()
                 i += 1
-                
             else:
                 i = (i+1)%10001
-
 
     def computeCommands(self):
         global newCommandes
         reponse = "TICK/"
         try:
             mutexNewCom.acquire()
-            acceptingNewCommands = False
-            for (k, v) in newCommandes.items():
-                vehicule = vehicules[k]
-                for c in v:
-                    a,t = c.split(":")
-                    vehicule.vX *= float(t)
-                    vehicule.vY *= float(t)
-                    vehicule.posX = (vehicule.posX+20 + vehicule.vX)%(2*largeur)
-                    vehicule.posX -= largeur
-                    vehicule.posY = (vehicule.posY+20 + vehicule.vY)%(2*hauteur)
-                    vehicule.posY -= hauteur
-                    vehicule.direction += float(a)
-                reponse += str(k)+":"+"X"+str(vehicule.posX)+"Y"+str(vehicule.posY)+"T"+str(vehicule.direction)+"|"
-            newCommandes = dict()
-            reponse = reponse[:-1]
-            reponse += "\n"
-            for (joueur, s) in self.joueurs.items():
-                s.clientSock.send(reponse.encode())
+            if(len(newCommandes) > 0):
+                acceptingNewCommands = False
+                for (k, v) in newCommandes.items():
+                    vehicule = vehicules[k]
+                    for c in v:
+                        a,t = c.split(":")
+                        #FAIRE MIEUX LES CLACULS CAR CA NE MARCHE POINT
+                        vehicule.vX *= float(t)
+                        vehicule.vY *= float(t)
+                        vehicule.posX = (vehicule.posX+20 + vehicule.vX)%(2*largeur)
+                        vehicule.posX -= largeur
+                        vehicule.posY = (vehicule.posY+20 + vehicule.vY)%(2*hauteur)
+                        vehicule.posY -= hauteur
+                        vehicule.direction += float(a)
+                    reponse += str(k)+":"+"X"+str(vehicule.posX)+"Y"+str(vehicule.posY)+"VX"+str(vehicule.vX)+"VY"+str(vehicule.vY)+"T"+str(vehicule.direction)+"|"
+                newCommandes = dict()
+                reponse = reponse[:-1]
+                reponse += "\n"
+                for (joueur, s) in self.joueurs.items():
+                    print(reponse)
+                    s.clientSock.send(reponse.encode())
         finally:
             acceptingNewCommands = True
             mutexNewCom.release()
@@ -239,5 +240,4 @@ class Server:
             print("------- Client connected ------\n")
             t = Connexion(clientSock,addr);
             t.start()         
-            
-serv = Server()     
+server = Server()
