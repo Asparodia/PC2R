@@ -1,15 +1,15 @@
+package client;
 
-//import java.io.BufferedReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 
-public class Client {
+public class ClientMain {
 
 	protected final static int PORT = 2019;
-	protected final static String HOST = "ppti-14-503-02";
+	protected final static String HOST = "ppti-14-509-11";
 
 	public static void main(String[] args) {
 		Socket s = null;
@@ -22,13 +22,19 @@ public class Client {
 
 			System.out.println("Connexion etablie : " + s.getInetAddress() + " port : " + s.getPort());
 
-			new Reception(inChan).start();
-			new Envoi(outChan).start();
+			Reception r = new Reception(inChan);
+			Envoi e = new Envoi(outChan);
+			
+			r.start();
+			e.start();
+			
 		} catch (IOException e) {
 			System.err.println(e);
 
 		} finally {
 			if ((s != null)) {
+				///JOIN LES R ET E
+				
 //					s.close();
 			}
 		}

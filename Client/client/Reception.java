@@ -1,3 +1,5 @@
+package client;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 
@@ -15,12 +17,15 @@ public class Reception extends Thread {
 			try {
 				line = inChan.readLine();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			if(line == null) {
+				System.out.println("bye bye");
+				break;
+			}
 			String[] separation = line.split("/");
-			if (separation.length > 1) {
-				if (separation[0].equals("TICK")) {
+			if (separation[0].equals("TICK")) {
+				if (separation.length > 1) {
 					String[] coordonnees = separation[1].split("\\|");
 					for (String s : coordonnees) {
 						String[] coordonnee = s.split(":");
@@ -29,8 +34,7 @@ public class Reception extends Thread {
 					}
 				}
 			} else {
-				// System.out.println(separation[0]);
-				// System.out.println(line);
+				System.out.println(line);
 			}
 		}
 	}

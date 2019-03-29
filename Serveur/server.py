@@ -27,8 +27,9 @@ acceptingNewCommands = True
 
 finTimer = threading.Event()
 
-##########################################################################
+server_refresh_tickrate = threading.Event()
 
+##########################################################################
 class Ship():
     def __init__(self, n):
         self.name = n
@@ -46,7 +47,8 @@ class Ship():
     def toString(self):
         s = self.name + ":X" +str(self.posX)+":Y"+str(self.posY)
         return s
-    ##########################################################################
+
+##########################################################################
 
 class Timer(threading.Thread):
     def __init__(self, temps):
@@ -63,7 +65,21 @@ class Timer(threading.Thread):
         global finTimer
         finTimer.set()
 
+class Tickrate(threading.Thread):
+    def __init__(self, temps):
+        threading.Thread.__init__(self)
+        self.temps = temps
+        
+    def run(self):
+        i = 0
+        temps_depart = self.temps
+        while True:
+            time.sleep(self.temps)
+            server_refresh_tickrate.set()
+
 timer = Timer(10)
+tick = Tickrate(2)
+#############################################################################
 
 class Connexion(threading.Thread):
     def __init__(self,sock,add):
@@ -82,7 +98,7 @@ class Connexion(threading.Thread):
             
             if (reply[0] == "CONNECT"):
                 if(reply[1] in joueurs):
-                    m = "Ce pseudo est deja pris\n"
+                    m = "DENIED\n"
                     self.clientSock.send(m.encode())
                     del m
                     continue
@@ -107,31 +123,35 @@ class Connexion(threading.Thread):
                         mutexVehicules.release()
 
             if (reply[0] == "EXIT"):
-                m = "PLAYERLEFT\n"
+                m = "PLAYERLEFT/"+ str(reply[1])+"\n"
                 self.clientSock.send(m.encode())
+                
                 try:
                     mutexJoueurs.acquire()
                     try:
                         del joueurs[reply[1]]
                     except KeyError:
                         print("this player is not in here")
+
                     if(len(joueurs.keys())==0):
-                        timer._stop()
+                        timer._stop() # pb ici quand je veux partir pendant que le timer tourne
                         timer = Timer(10)
                 finally:
                     mutexJoueurs.release()  
                 try:
                     mutexVehicules.acquire()
-                    for v in vehicules:
-                        if(v.name==reply[1]):
-                            try:
-                                del vehicules[reply[1]]
-                            except KeyError:
-                                print("this player doesn't have a vehicle")
-                            break
+                    try:
+                        del vehicules[reply[1]]
+                    except KeyError:
+                        print("this player doesn't have a vehicle")
+                    
                 finally:
                     mutexVehicules.release()
-                del m
+                    del m
+                    del request
+                    del reply
+                    break
+                
 
             if(reply[0] == "NEWPOS"):
                 c =reply[1][1:]
@@ -164,11 +184,15 @@ class Connexion(threading.Thread):
                         del com
 
             if(reply[0] == "KILL"):
+                del request
+                del reply
                 break
+            
             del request
             del reply
+            
         print("SORTIE DE LA BOUCLE")
-        self.clientSock.close()
+        self.clientSock.close() #mieux gerer la deco du cote client ptete quand il recoi playleft il se ferme
       
 ###############################################################################
       
@@ -181,14 +205,11 @@ class Arena(threading.Thread):
         
     def run(self):
         finTimer.wait()
-        i = 1
+        tick.start()
         while True:
-            
-            if(i%100):
-                self.computeCommands()
-                i += 1
-            else:
-                i = (i+1)%10001
+            server_refresh_tickrate.wait()
+            self.computeCommands()
+        tick._stop()
 
     def computeCommands(self):
         global newCommandes
