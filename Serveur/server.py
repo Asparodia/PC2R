@@ -3,6 +3,7 @@ import socket
 import threading
 import os
 import random
+import math
 
 
 #windows : hostname sur terminal , mine is LAPTOP-IT1VP3Q2
@@ -54,16 +55,19 @@ class Timer(threading.Thread):
     def __init__(self, temps):
         threading.Thread.__init__(self)
         self.temps = temps
+        self.zeroJoueur = threading.Event()
+        self.pasTimer = math.ceil(temps/10)
+        self.decompte = 0
         
     def run(self):
-        i = 0
-        while(i < self.temps):
-            time.sleep(1)
-            i +=1
-            print(">>>>>> Il reste "+str(self.temps-i)+" secondes")
+        while(self.decompte < self.temps and not self.zeroJoueur.is_set()):
+            print(">>>>>> Il reste "+str(self.temps-self.decompte)+" secondes")
+            self.zeroJoueur.wait(timeout = self.pasTimer)
+            self.decompte += self.pasTimer
         
         global finTimer
         finTimer.set()
+        #print("FIN ITMER")
 
 class Tickrate(threading.Thread):
     def __init__(self, temps):
@@ -71,8 +75,6 @@ class Tickrate(threading.Thread):
         self.temps = temps
         
     def run(self):
-        i = 0
-        temps_depart = self.temps
         while True:
             time.sleep(self.temps)
             server_refresh_tickrate.set()
@@ -102,15 +104,29 @@ class Connexion(threading.Thread):
                     self.clientSock.send(m.encode())
                     del m
                     continue
-                else:
-                    m = "WELCOME/" + str(reply[1]) +"\n"
-                    self.clientSock.send(m.encode())
-                    del m   
+                # Le pseudo doit etre en lettres romaines minuscules
+                else: 
                     try:
                         mutexJoueurs.acquire()
-                        joueurs[reply[1]] = self
-                        if(len(joueurs)==1):
+                        if(len(joueurs)==0):
+                            # Lance le timer si c'est le premier joueur connecte
                             timer.start()
+                        else:
+                            # Previens les autres joueurs de sa connexion sinon
+                            m = "NEWPLAYER/" + str(reply[1]) + "\n"
+                            for (pseudo, connexion) in joueurs.items():
+                                connexion.clientSock.send(m.encode())
+                        joueurs[reply[1]] = self
+                        m = "WELCOME/" 
+                        if(timer.decompte < timer.temps):
+                            m += "ATTENTE/"
+                        else:
+                            m += "JEU/"
+                        m += "faire les scores et les joueurs ici/"
+                        m += "(x,y) de l'objectif"
+                        m += "\n"
+                        self.clientSock.send(m.encode())
+                        del m  
                     finally:
                         mutexJoueurs.release()
                         self.name = reply[1]
@@ -130,12 +146,16 @@ class Connexion(threading.Thread):
                     mutexJoueurs.acquire()
                     try:
                         del joueurs[reply[1]]
+                        print(len(joueurs))
                     except KeyError:
                         print("this player is not in here")
 
                     if(len(joueurs.keys())==0):
-                        timer._stop() # pb ici quand je veux partir pendant que le timer tourne
+                        timer.zeroJoueur.set()
                         timer = Timer(10)
+                    else:
+                        for (pseudo, connexion) in joueurs.items():
+                            connexion.clientSock.send(m.encode())
                 finally:
                     mutexJoueurs.release()  
                 try:
@@ -213,6 +233,7 @@ class Arena(threading.Thread):
 
     def computeCommands(self):
         global newCommandes
+        global acceptingNewCommands
         reponse = "TICK/"
         try:
             mutexNewCom.acquire()
