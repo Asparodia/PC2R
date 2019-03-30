@@ -2,13 +2,18 @@ package client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.HashMap;
+
+import gameobjects.Vaisseau;
 
 public class Reception extends Thread {
 	BufferedReader inChan = null;
 	String line = null;
+	HashMap<String, Vaisseau> vehicules;
 
-	public Reception(BufferedReader b) {
+	public Reception(BufferedReader b, HashMap<String, Vaisseau> vehicules) {
 		inChan = b;
+		this.vehicules = vehicules;
 	}
 
 	@Override
@@ -19,7 +24,7 @@ public class Reception extends Thread {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			if(line == null) {
+			if (line == null) {
 				System.out.println("bye bye");
 				break;
 			}
@@ -32,6 +37,13 @@ public class Reception extends Thread {
 						System.out.print(coordonnee[0]);
 						System.out.print(coordonnee[1]);
 					}
+				}
+			} else if (separation[0].equals("SESSION")) {
+				System.out.println("Objectif = " + separation[2]);
+				String[] listeVehicules = separation[1].split("\\|");
+				for (String s : listeVehicules) {
+					String[] individu = s.split(":");
+					vehicules.put(individu[0],)
 				}
 			} else {
 				System.out.println(line);

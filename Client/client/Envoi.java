@@ -2,12 +2,17 @@ package client;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.HashMap;
+
+import gameobjects.Vaisseau;
 
 public class Envoi extends Thread {
 	PrintStream outChan = null;
+	HashMap<String, Vaisseau> vehicules;
 
-	public Envoi(PrintStream s) {
+	public Envoi(PrintStream s, HashMap<String, Vaisseau> vehicules) {
 		outChan = s;
+		this.vehicules = vehicules;
 	}
 
 	@Override
@@ -27,8 +32,9 @@ public class Envoi extends Thread {
 			// envoie au serv
 			outChan.print(line);
 			outChan.flush();
-
+			if (line.contains("EXIT/")) {
+				break;
+			}
 		}
-
 	}
 }

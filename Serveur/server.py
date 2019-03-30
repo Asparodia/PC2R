@@ -225,6 +225,22 @@ class Arena(threading.Thread):
         
     def run(self):
         finTimer.wait()
+        m = "SESSION/"
+        try:
+            mutexVehicules.acquire()
+            for (joueur, ship) in vehicules.items():
+                m += joueur + ":X" + str(ship.posX) + ":Y" + str(ship.posY) + "|"
+        finally:
+            mutexVehicules.release()
+            m = m[:-1]
+            m += "\n"
+        try:
+            mutexJoueurs.acquire()
+            for (joueur, chaussette) in joueurs.items():
+                chaussette.clientSock.send(m.encode())
+        finally:
+            mutexJoueurs.release()
+            del m
         tick.start()
         while True:
             server_refresh_tickrate.wait()
