@@ -39,11 +39,10 @@ public class Reception extends Thread {
 					}
 				}
 			} else if (separation[0].equals("SESSION")) {
-				System.out.println("Objectif = " + separation[2]);
 				String[] listeVehicules = separation[1].split("\\|");
 				for (String s : listeVehicules) {
 					String[] individu = s.split(":");
-					vehicules.put(individu[0],)
+					vehicules.put(individu[0], new Vaisseau(individu[0], individu[1], individu[2]));
 				}
 			} else {
 				System.out.println(line);

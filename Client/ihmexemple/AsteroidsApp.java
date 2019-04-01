@@ -37,7 +37,7 @@ public class AsteroidsApp extends Application {
 			@Override
 			public void handle(long now) {
 				if (nextDecelerate == 0) {
-					player.decelerate();
+//					player.decelerate();
 					nextDecelerate = refreshTickRate;
 				}
 				nextDecelerate--;

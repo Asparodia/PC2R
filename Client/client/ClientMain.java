@@ -12,7 +12,7 @@ import gameobjects.Vaisseau;
 public class ClientMain {
 
 	protected final static int PORT = 2019;
-	protected final static String HOST = "ppti-14-507-01";
+	protected final static String HOST = "ppti-14-502-14";
 
 	public static void main(String[] args) {
 		Socket s = null;

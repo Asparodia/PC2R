@@ -1,25 +1,24 @@
 package gameobjects;
 
-
 public class Vaisseau {
-	
+
 	private String name;
-    private double posX;
-    private double posY;
-    private double direction;
-    private double vX;
-    private double vY;
-    private int score;
-    
-    public Vaisseau(String n, double px, double py, double dir, double vX, double vY) {
-    	this.name = n;
-    	this.posX = px;
-    	this.posY = py;
-    	this.direction = dir;
-    	this.vX = vX;
-    	this.vY = vY;
-    	this.score =0;
-    }
+	private double posX;
+	private double posY;
+	private double direction;
+	private double vX;
+	private double vY;
+	private int score;
+
+	public Vaisseau(String n, String px, String py) {
+		this.name = n;
+		this.posX = px.codePointCount(1, px.length() - 1);
+		this.posY = py.codePointCount(1, py.length() - 1);
+		this.direction = 90.0;
+		this.vX = 0.0;
+		this.vY = 0.0;
+		this.score = 0;
+	}
 
 	public String getName() {
 		return name;
@@ -76,5 +75,11 @@ public class Vaisseau {
 	public void setScore(int score) {
 		this.score = score;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "Nom = " + name + "/PosX = " + posX + "/PosY = " + posY + "/Direction = " + direction + "/vX = " + vX
+				+ "/vY = " + vY + "/Score = " + score;
+	}
+
 }

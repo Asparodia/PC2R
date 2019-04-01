@@ -233,6 +233,7 @@ class Arena(threading.Thread):
         finally:
             mutexVehicules.release()
             m = m[:-1]
+            m += "/mettre l'obj ici"
             m += "\n"
         try:
             mutexJoueurs.acquire()
