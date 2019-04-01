@@ -43,7 +43,6 @@ public class Reception extends Thread {
 				String[] listeVehicules = separation[1].split("\\|");
 				for (String s : listeVehicules) {
 					String[] individu = s.split(":");
-					vehicules.put(individu[0],)
 				}
 			} else {
 				System.out.println(line);
