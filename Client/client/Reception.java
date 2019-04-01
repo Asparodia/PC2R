@@ -42,7 +42,10 @@ public class Reception extends Thread {
 				String[] listeVehicules = separation[1].split("\\|");
 				for (String s : listeVehicules) {
 					String[] individu = s.split(":");
+<<<<<<< HEAD
 					vehicules.put(individu[0], new Vaisseau(individu[0], individu[1], individu[2]));
+=======
+>>>>>>> 292c1f0e80a109cf458760823f712e807186094d
 				}
 			} else {
 				System.out.println(line);
