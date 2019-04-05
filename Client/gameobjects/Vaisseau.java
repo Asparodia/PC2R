@@ -78,8 +78,8 @@ public class Vaisseau {
 
 	@Override
 	public String toString() {
-		return "Nom = " + name + "/PosX = " + posX + "/PosY = " + posY + "/Direction = " + direction + "/vX = " + vX
-				+ "/vY = " + vY + "/Score = " + score;
+		return /* "Nom = " + name + "/" + */" PosX : " + posX + "/PosY : " + posY + "/Direction : " + direction
+				+ "/vX : " + vX + "/vY : " + vY + "/Score : " + score;
 	}
 
 }

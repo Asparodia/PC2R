@@ -1,6 +1,15 @@
 package ihmexemple;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 
+import gameobjects.Vaisseau;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
@@ -14,7 +23,7 @@ import javafx.stage.Stage;
 //import java.util.ArrayList;
 //import java.util.List;
 
-public class AsteroidsApp extends Application {
+public class AsteroidsApp extends Application implements Runnable {
 
 	private Pane root;
 
@@ -24,20 +33,60 @@ public class AsteroidsApp extends Application {
 	private Ship player;
 	private int refreshTickRate = 10;
 	private int nextDecelerate = 0;
+	private HashMap<String, Vaisseau> vehicules;
+	private Lock verrouListeVehicules;
+	private Condition conditionListeVehicules; // INUTILE ?
+	private String nomJoueur;
+	private List<Ship> players = new ArrayList<>();
+
+	public void init(HashMap<String, Vaisseau> vehicules, Lock listeVehicules, Condition listeVehiculesCondition,
+			String nomJoueur) {
+		this.vehicules = vehicules;
+		this.verrouListeVehicules = listeVehicules;
+		this.conditionListeVehicules = listeVehiculesCondition;
+		this.nomJoueur = nomJoueur;
+	}
 
 	private Parent createContent() {
 		root = new Pane();
 		root.setPrefSize(600, 600);
 
-		player = new Ship(new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0), root.getPrefWidth(), root.getPrefHeight());
-		player.setVelocity(new Point2D(0, 0));
-		addGameObject(player, 300, 300);
+//		Polygon p;
+//		Ship vaisseauAAjouter;
+//		try {
+//			System.out.println("AVANT LOCK");
+//			verrouListeVehicules.lock();
+//System.out.println("LOCK");
+//			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
+//			while (iterateur.hasNext()) {
+//				Map.Entry<String, Vaisseau> courant = (Entry<String, Vaisseau>) iterateur.next();
+//				Vaisseau vaisseauCourant = courant.getValue(); 
+//				if (courant.getKey().equals(nomJoueur)) {
+//					p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
+//					p.setRotate(-90);
+//					player.setVelocity(new Point2D(0, 0));
+//					player = new Ship(p, root.getPrefWidth(), root.getPrefHeight());
+//					addGameObject(player, vaisseauCourant.getPosX(), vaisseauCourant.getPosY());
+//				} else {
+//					p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
+//					p.setRotate(-90);
+//					vaisseauAAjouter = new Ship(p, root.getPrefWidth(), root.getPrefHeight());
+//					vaisseauAAjouter.setVelocity(new Point2D(0, 0));
+//					players.add(vaisseauAAjouter);
+//					addGameObject(vaisseauAAjouter, vaisseauCourant.getPosX(), vaisseauCourant.getPosY());
+//				}
+//			}
+//		} finally {
+//			verrouListeVehicules.unlock();
+//		}
+		addGameObject(new Ship(new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0), root.getPrefWidth(), root.getPrefHeight()), 0, 0);
+	
 
 		AnimationTimer timer = new AnimationTimer() {
 			@Override
 			public void handle(long now) {
 				if (nextDecelerate == 0) {
-//					player.decelerate();
+					// player.decelerate();
 					nextDecelerate = refreshTickRate;
 				}
 				nextDecelerate--;
@@ -111,11 +160,13 @@ public class AsteroidsApp extends Application {
 			if (e.getCode() == KeyCode.LEFT) {
 				player.rotateLeft();
 				// player.move();
-			} else if (e.getCode() == KeyCode.RIGHT) {
+			}
+			if (e.getCode() == KeyCode.RIGHT) {
 				player.rotateRight();
 				// player.move();
-			} else if (e.getCode() == KeyCode.UP) {
-				player.impulse();
+			}
+			if (e.getCode() == KeyCode.UP) {
+				// player.impulse();
 				player.move();
 				// Bullet bullet = new Bullet();
 				// bullet.setVelocity(player.getVelocity().normalize().multiply(5));
@@ -129,5 +180,11 @@ public class AsteroidsApp extends Application {
 
 	public static void main(String[] args) {
 		launch(args);
+	}
+
+	@Override
+	public void run() {
+		launch();
+
 	}
 }

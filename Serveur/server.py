@@ -13,8 +13,8 @@ print(H)
 P = 2019
 DATA = 1024
 
-hauteur = 20.0
-largeur = 20.0
+hauteur = 600.0
+largeur = 600.0
 
 mutexJoueurs = threading.Lock()
 joueurs = dict()
@@ -25,6 +25,9 @@ vehicules = dict()
 mutexNewCom = threading.Lock()
 newCommandes = dict()
 acceptingNewCommands = True
+
+mutexObjectif = threading.Lock()
+newObjectifEvent = threading.Event()
 
 finTimer = threading.Event()
 
@@ -49,6 +52,13 @@ class Ship():
         s = self.name + ":X" +str(self.posX)+":Y"+str(self.posY)
         return s
 
+class Objectif():
+    def __init__(self):
+        self.posX = random.uniform(-largeur, largeur)
+        self.posY = random.uniform(-hauteur, hauteur)
+        self.valeur = 1 # Pour différencier si jamais on met plusieurs types d'objets récupérables
+        
+objectif = Objectif()
 ##########################################################################
 
 class Timer(threading.Thread):
@@ -79,7 +89,7 @@ class Tickrate(threading.Thread):
             time.sleep(self.temps)
             server_refresh_tickrate.set()
 
-timer = Timer(10)
+timer = Timer(3)
 tick = Tickrate(2)
 #############################################################################
 
@@ -122,11 +132,6 @@ class Connexion(threading.Thread):
                             m += "ATTENTE/"
                         else:
                             m += "JEU/"
-                        m += "faire les scores et les joueurs ici/"
-                        m += "(x,y) de l'objectif"
-                        m += "\n"
-                        self.clientSock.send(m.encode())
-                        del m  
                     finally:
                         mutexJoueurs.release()
                         self.name = reply[1]
@@ -135,9 +140,20 @@ class Connexion(threading.Thread):
                     try:
                         mutexVehicules.acquire()
                         vehicules[reply[1]] = v
+                        for (nom, vehicule) in vehicules.items():
+                            m+= nom + ":" + str(vehicule.score) +"|"
+                        m = m[:-1]
+                        m += "/"
                     finally:
                         mutexVehicules.release()
-
+                    try:
+                        mutexObjectif.acquire()
+                        m += "X" + str(objectif.posX)+"Y"+str(objectif.posY)
+                        m += "\n"
+                    finally:
+                        mutexObjectif.release()
+                        self.clientSock.send(m.encode())
+                        del m  
             if (reply[0] == "EXIT"):
                 m = "PLAYERLEFT/"+ str(reply[1])+"\n"
                 self.clientSock.send(m.encode())
@@ -233,7 +249,12 @@ class Arena(threading.Thread):
         finally:
             mutexVehicules.release()
             m = m[:-1]
-            m += "/mettre l'obj ici"
+            try:
+                mutexObjectif.acquire()
+                m += "X" + str(objectif.posX)+"Y"+str(objectif.posY)
+                m += "\n"
+            finally:
+                mutexObjectif.release()
             m += "\n"
         try:
             mutexJoueurs.acquire()

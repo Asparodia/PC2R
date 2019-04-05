@@ -7,7 +7,8 @@ import javafx.scene.Node;
 public class Ship extends GameObject {
 	private double maxWidth;
 	private double maxHeight;
-	private boolean boom = false;
+	// private boolean boom = false;
+	private final static double CAPVITESSE = 10.0;
 
 	public Ship(Node view, double d, double e) {
 		super(view);
@@ -17,33 +18,36 @@ public class Ship extends GameObject {
 
 	@Override
 	public void update() {
-		if (boom) {
-			view.setTranslateX((view.getTranslateX() + (5 * velocity.getX())% 10 + maxWidth) % maxWidth);
-			view.setTranslateY((view.getTranslateY() + (5 * velocity.getY())%10 + maxHeight) % maxHeight);
-		} else {
-			view.setTranslateX((view.getTranslateX() + velocity.getX() + maxWidth) % maxWidth);
-			view.setTranslateY((view.getTranslateY() + velocity.getY() + maxHeight) % maxHeight);
-		}
+		// if (boom) {
+		view.setTranslateX((view.getTranslateX() + velocity.getX() + maxWidth) % maxWidth);
+		view.setTranslateY((view.getTranslateY() + velocity.getY() + maxHeight) % maxHeight);
+		// }
 	}
 
 	public void rotateRight() {
-		view.setRotate(view.getRotate() + 5);
+		view.setRotate(view.getRotate() + 6);
 	}
 
 	public void rotateLeft() {
-		view.setRotate(view.getRotate() - 5);
+		view.setRotate(view.getRotate() - 6);
 	}
 
 	public void move() {
-		System.out.println("Truc : " + Math.cos(Math.toRadians(getRotate())));
-		System.out.println("X : " + velocity.getX());
-		setVelocity(new Point2D((velocity.getX() - Math.cos(Math.toRadians(getRotate()))),
-				(velocity.getY() - Math.sin(Math.toRadians(getRotate())))));
+		double x = (velocity.getX() >= CAPVITESSE) ? CAPVITESSE
+				: (velocity.getX() <= -CAPVITESSE) ? -CAPVITESSE : velocity.getX();
+		double y = (velocity.getY() >= CAPVITESSE) ? CAPVITESSE
+				: (velocity.getY() <= -CAPVITESSE) ? -CAPVITESSE : velocity.getY();
+
+		setVelocity(new Point2D(x + Math.cos(Math.toRadians(getRotate())), y + Math.sin(Math.toRadians(getRotate()))));
+		// System.out.println("Cos : " + Math.cos(Math.toRadians(getRotate())));
+		// System.out.println("VelocityX : " + velocity.getX());
+		// System.out.println("Sin : " + Math.sin(Math.toRadians(getRotate())));
+		// System.out.println("VelocityY : " + velocity.getY());
 	}
 
-	public void impulse() {
-		boom = true;
-	}
+	// public void impulse() {
+	// boom = true;
+	// }
 
 	// public void decelerate() {
 	// view.setTranslateX((view.getTranslateX() + velocity.getX() + maxWidth - 0.5)
