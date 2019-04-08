@@ -5,3 +5,8 @@
 /AsteroidsApp.class
 /GameObject.class
 /Ship.class
+/IHMconnexion.class
+/IHMclient.class
+/IHMclient$1.class
+/ChangeListener.class
+/A.class

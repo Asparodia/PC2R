@@ -6,22 +6,17 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import gameobjects.Vaisseau;
 
 public class ClientMain {
 
 	protected final static int PORT = 2019;
-	protected final static String HOST = "ppti-14-502-05";
+	protected final static String HOST = "ppti-14-406-01";
 
 	public static void main(String[] args) {
 		Socket s = null;
 		HashMap<String, Vaisseau> vehicules = new HashMap<>(); // PROBLEME DE CONCURRENCE JE CROIS
-		Lock verrouListeVehicules = new ReentrantLock();
-		Condition conditionListeVehicules = verrouListeVehicules.newCondition();
 		try {
 			System.out.println(HOST);
 			s = new Socket(HOST, PORT);
@@ -31,7 +26,7 @@ public class ClientMain {
 
 			System.out.println("Connexion etablie : " + s.getInetAddress() + " port : " + s.getPort());
 
-			Reception r = new Reception(inChan, vehicules, verrouListeVehicules, conditionListeVehicules);
+			Reception r = new Reception(inChan, vehicules, null);
 			Envoi e = new Envoi(outChan, vehicules);
 
 			r.start();

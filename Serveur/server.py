@@ -10,11 +10,11 @@ import math
 #############################" VARIABLES ##############################"
 H = os.uname()[1]
 print(H)
-P = 2019
+P = 2018
 DATA = 1024
 
-hauteur = 600.0
-largeur = 600.0
+hauteur = 400.0
+largeur = 400.0
 
 mutexJoueurs = threading.Lock()
 joueurs = dict()
@@ -249,6 +249,7 @@ class Arena(threading.Thread):
         finally:
             mutexVehicules.release()
             m = m[:-1]
+            m +="/"
             try:
                 mutexObjectif.acquire()
                 m += "X" + str(objectif.posX)+"Y"+str(objectif.posY)

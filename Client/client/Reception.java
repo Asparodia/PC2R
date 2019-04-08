@@ -3,26 +3,23 @@ package client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 
 import gameobjects.Vaisseau;
 import ihmexemple.AsteroidsApp;
+import ihmexemple.IHMclient;
+import javafx.application.Application;
 
 public class Reception extends Thread {
 	BufferedReader inChan = null;
 	String line = null;
 	HashMap<String, Vaisseau> vehicules;
-	Lock verrouListeVehicules;
-	Condition conditionListeVehicules; // Inutile ?
 	private String nomJoueur;
+	Object ihm;
 
-	public Reception(BufferedReader b, HashMap<String, Vaisseau> vehicules, Lock listeVehicules,
-			Condition listeVehiculesCondition) {
+	public Reception(BufferedReader b, HashMap<String, Vaisseau> vehicules, Object IHMCLINET) {
 		inChan = b;
 		this.vehicules = vehicules;
-		this.verrouListeVehicules = listeVehicules;
-		this.conditionListeVehicules = listeVehiculesCondition;
+		ihm = IHMCLINET;
 	}
 
 	@Override
@@ -37,6 +34,7 @@ public class Reception extends Thread {
 				System.out.println("bye bye");
 				break;
 			}
+			System.out.println(line);
 			String[] separation = line.split("/");
 			if (separation[0].equals("TICK")) {
 				if (separation.length > 1) {
@@ -47,25 +45,25 @@ public class Reception extends Thread {
 						System.out.print(coordonnee[1]);
 					}
 				}
-			} else if (separation[0].equals("SESSION")) {
-				try {
-					verrouListeVehicules.lock();
-					String[] listeVehicules = separation[1].split("\\|");
-					for (String s : listeVehicules) {
-						String[] individu = s.split(":");
-						vehicules.put(individu[0], new Vaisseau(individu[0], individu[1], individu[2]));
-						System.out.println(vehicules);
-					}
-				} finally {
-					AsteroidsApp app = new AsteroidsApp();
-					app.init(vehicules, verrouListeVehicules, conditionListeVehicules, nomJoueur);
-					new Thread(app).start();
-					verrouListeVehicules.unlock();
-				}
-			} else if (separation[0].equals("WELCOME")) {
+			}
+			if (separation[0].equals("WELCOME")) {
 				nomJoueur = line.split("/")[2].split(":")[0];
+
+			} else if (separation[0].equals("SESSION")) {
+				String[] listeVehicules = separation[1].split("\\|");
+				for (String s : listeVehicules) {
+					String[] individu = s.split(":");
+					System.out.println(individu[1]);
+					System.out.println(individu[2]);
+					vehicules.put(individu[0], new Vaisseau(individu[0], individu[1], individu[2]));
+				
+				}
+				synchronized (ihm) {
+System.out.println("LE LOCK");
+					ihm.notifyAll();
+				}
 			} else {
-				System.out.println(line);
+				System.out.println("CAS NON TRAITE");
 			}
 		}
 	}

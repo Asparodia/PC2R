@@ -12,8 +12,10 @@ public class Vaisseau {
 
 	public Vaisseau(String n, String px, String py) {
 		this.name = n;
-		this.posX = px.codePointCount(1, px.length() - 1);
-		this.posY = py.codePointCount(1, py.length() - 1);
+		this.posX = new Double(px.substring(1, px.length() - 1));
+		this.posY = new Double(py.substring(1, py.length() - 1));
+		System.out.println(posX);
+		System.out.println(posY);
 		this.direction = 90.0;
 		this.vX = 0.0;
 		this.vY = 0.0;
