@@ -10,7 +10,7 @@ import math
 #############################" VARIABLES ##############################"
 H = os.uname()[1]
 print(H)
-P = 2018
+P = 2019
 DATA = 1024
 
 hauteur = 400.0
@@ -33,13 +33,15 @@ finTimer = threading.Event()
 
 server_refresh_tickrate = threading.Event()
 
+MAX_VITESSE = 6.0
+
 ##########################################################################
 class Ship():
     def __init__(self, n):
         self.name = n
         self.posX = random.uniform(-largeur, largeur)
         self.posY = random.uniform(-hauteur, hauteur)
-        self.direction = 90.0
+        self.direction = float(math.pi/2)
         self.vX = 0.0
         self.vY = 0.0
         self.score = 0
@@ -77,20 +79,19 @@ class Timer(threading.Thread):
         
         global finTimer
         finTimer.set()
-        #print("FIN ITMER")
 
 class Tickrate(threading.Thread):
     def __init__(self, temps):
         threading.Thread.__init__(self)
         self.temps = temps
+        self.finDeSession = threading.Event()
         
     def run(self):
-        while True:
+        while not self.finDeSession.is_set():
             time.sleep(self.temps)
             server_refresh_tickrate.set()
 
 timer = Timer(3)
-tick = Tickrate(2)
 #############################################################################
 
 class Connexion(threading.Thread):
@@ -109,6 +110,7 @@ class Connexion(threading.Thread):
             reply = (request.decode()).split("/")
             
             if (reply[0] == "CONNECT"):
+                print("LA CONNEXION")
                 if(reply[1] in joueurs):
                     m = "DENIED\n"
                     self.clientSock.send(m.encode())
@@ -168,7 +170,7 @@ class Connexion(threading.Thread):
 
                     if(len(joueurs.keys())==0):
                         timer.zeroJoueur.set()
-                        timer = Timer(10)
+                        timer = Timer(3)
                     else:
                         for (pseudo, connexion) in joueurs.items():
                             connexion.clientSock.send(m.encode())
@@ -183,12 +185,11 @@ class Connexion(threading.Thread):
                     
                 finally:
                     mutexVehicules.release()
-                    del m
-                    del request
-                    del reply
-                    break
+                    #del m
+                    #del request
+                    #del reply
+                    #break
                 
-
             if(reply[0] == "NEWPOS"):
                 c =reply[1][1:]
                 rc = c.split('Y')
@@ -197,7 +198,7 @@ class Connexion(threading.Thread):
                 self.ship.posY = float(rc[1])%hauteur
                 del rc
                 m = "POSITION_SET\n"
-                self.clientSock.send(m.encode())
+                self.clientSock.send(m.encode()) 
                 del m
                 
             if(reply[0] == "NEWCOM"):
@@ -240,35 +241,42 @@ class Arena(threading.Thread):
         self.maxScore = 5
         
     def run(self):
-        finTimer.wait()
-        m = "SESSION/"
-        try:
-            mutexVehicules.acquire()
-            for (joueur, ship) in vehicules.items():
-                m += joueur + ":X" + str(ship.posX) + ":Y" + str(ship.posY) + "|"
-        finally:
-            mutexVehicules.release()
-            m = m[:-1]
-            m +="/"
+        while(True):
+            print("DEBUT")
+            finTimer.wait()
+            print("LE VRAI DEBUT DE SESSION")
+            m = "SESSION/"
             try:
-                mutexObjectif.acquire()
-                m += "X" + str(objectif.posX)+"Y"+str(objectif.posY)
-                m += "\n"
+                mutexVehicules.acquire()
+                for (joueur, ship) in vehicules.items():
+                    m += joueur + ":X" + str(ship.posX) + ":Y" + str(ship.posY) + "|"
             finally:
-                mutexObjectif.release()
-            m += "\n"
-        try:
-            mutexJoueurs.acquire()
-            for (joueur, chaussette) in joueurs.items():
-                chaussette.clientSock.send(m.encode())
-        finally:
-            mutexJoueurs.release()
-            del m
-        tick.start()
-        while True:
-            server_refresh_tickrate.wait()
-            self.computeCommands()
-        tick._stop()
+                mutexVehicules.release()
+                m = m[:-1]
+                m +="/"
+                try:
+                    mutexObjectif.acquire()
+                    m += "X" + str(objectif.posX)+"Y"+str(objectif.posY)
+                    m += "\n"
+                finally:
+                    mutexObjectif.release()
+                m += "\n"
+            try:
+                mutexJoueurs.acquire()
+                for (joueur, chaussette) in joueurs.items():
+                    chaussette.clientSock.send(m.encode())
+            finally:
+                mutexJoueurs.release()
+                del m
+            tick = Tickrate(2)
+            tick.start()
+            while True:
+                server_refresh_tickrate.wait()
+                if(len(joueurs)== 0):
+                    break
+                self.computeCommands()
+            tick.finDeSession.set()
+            finTimer.clear() 
 
     def computeCommands(self):
         global newCommandes
@@ -283,13 +291,28 @@ class Arena(threading.Thread):
                     for c in v:
                         a,t = c.split(":")
                         #FAIRE MIEUX LES CLACULS CAR CA NE MARCHE POINT
-                        vehicule.vX *= float(t)
-                        vehicule.vY *= float(t)
-                        vehicule.posX = (vehicule.posX+20 + vehicule.vX)%(2*largeur)
-                        vehicule.posX -= largeur
-                        vehicule.posY = (vehicule.posY+20 + vehicule.vY)%(2*hauteur)
-                        vehicule.posY -= hauteur
                         vehicule.direction += float(a)
+                        vehicule.vX = min(vehicule.vX + float(t)*math.cos(vehicule.direction),MAX_VITESSE)
+                        vehicule.vY = min(vehicule.vY + float(t)*math.sin(vehicule.direction),MAX_VITESSE)
+
+                        vehicule.posX = (vehicule.posX + vehicule.vX)
+                        if(math.fabs(vehicule.posX) > largeur):
+                            if(vehicule.posX > 0):
+                                vehicule.posX %= largeur
+                                vehicule.posX -= largeur
+                            else:
+                                vehicule.posX %= largeur
+                                vehicule.posX = -vehicule.posX
+                                vehicule.posX += largeur
+                        vehicule.posY = (vehicule.posY + vehicule.vY)
+                        if(math.fabs(vehicule.posY) > hauteur):
+                            if(vehicule.posY > 0):
+                                vehicule.posY %= hauteur
+                                vehicule.posY -= hauteur
+                            else:
+                                vehicule.posY %= hauteur
+                                vehicule.posY = -vehicule.posY
+                                vehicule.posY += hauteur
                     reponse += str(k)+":"+"X"+str(vehicule.posX)+"Y"+str(vehicule.posY)+"VX"+str(vehicule.vX)+"VY"+str(vehicule.vY)+"T"+str(vehicule.direction)+"|"
                 newCommandes = dict()
                 reponse = reponse[:-1]
@@ -315,6 +338,7 @@ class Server:
         
         print("------- Server ready --------\n")
 
+        
         Arena(joueurs, vehicules).start() 
         while True:
             clientSock, addr = self.sockServ.accept()

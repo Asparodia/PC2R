@@ -26,20 +26,20 @@ public class ClientMain {
 
 			System.out.println("Connexion etablie : " + s.getInetAddress() + " port : " + s.getPort());
 
-			Reception r = new Reception(inChan, vehicules, null);
+//			Reception r = new Reception(inChan, vehicules, null);
 			Envoi e = new Envoi(outChan, vehicules);
 
-			r.start();
-			e.start();
+//			r.start();
+			// e.start();
 
-			try {
-				r.join();
-				e.join();
+//			try {
+//				r.join();
+				// e.join();
 				s.close();
-			} catch (InterruptedException e1) {
+//			} catch (InterruptedException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+//				e1.printStackTrace();
+//			}
 		} catch (IOException e) {
 			System.err.println(e);
 

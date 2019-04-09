@@ -23,34 +23,24 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.ImagePattern;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class IHMclient extends Application {
-	protected final static int PORT = 2018;
-	protected final static String HOST = "ppti-14-406-01";
+	protected final static int PORT = 2019;
+	protected final static String HOST = "ppti-14-509-08";
 	HashMap<String, Vaisseau> vehicules = new HashMap<>();
 	private Envoi e;
-	private Reception r;
-	PrintStream outChan;
-	private Pane root;
-	private Ship player;
+	private GridPane root;
+	private Vaisseau player;
 	Stage primaryStage;
 	ReentrantLock verrou = new ReentrantLock();
 	public Condition changeLaScene = verrou.newCondition();
@@ -58,6 +48,9 @@ public class IHMclient extends Application {
 	String name = "";
 	public final static int LARGEUR = 800;
 	public final static int HAUTEUR = 800;
+	private int refreshTickRate = 30;
+	int i = 0;
+	private Objectif objectif;
 
 	public IHMclient() {
 		Socket s = null;
@@ -66,14 +59,14 @@ public class IHMclient extends Application {
 			s = new Socket(HOST, PORT);
 
 			BufferedReader inChan = new BufferedReader(new InputStreamReader(s.getInputStream()));
-			outChan = new PrintStream(s.getOutputStream());
-
-			Reception r = new Reception(inChan, vehicules, listener);
-			Envoi e = new Envoi(outChan, vehicules);
+			PrintStream outChan = new PrintStream(s.getOutputStream());
+			Circle cercle = new Circle(25);
+			cercle.setFill(Color.LAWNGREEN);
+			objectif = new Objectif(cercle, 0, 0);
+			Reception r = new Reception(inChan, vehicules, listener, objectif);
+			e = new Envoi(outChan, vehicules);
 
 			r.start();
-			e.start();
-
 		} catch (IOException e) {
 			System.err.println(e);
 
@@ -85,72 +78,75 @@ public class IHMclient extends Application {
 	public void start(Stage stage) throws Exception {
 		primaryStage = stage;
 		primaryStage.setTitle("Astroid");
-		BorderPane bp = new BorderPane();
-		bp.setPadding(new Insets(10, 50, 50, 50));
-		// Adding HBox
-		HBox hb = new HBox();
-		hb.setPadding(new Insets(20, 20, 20, 30));
-		// Adding GridPane
-		GridPane gridPane = new GridPane();
-		gridPane.setPadding(new Insets(20, 20, 20, 20));
-		gridPane.setHgap(5);
-		gridPane.setVgap(5);
-		// Implementing Nodes for GridPane
-		Label lblUserName = new Label("Username");
-		TextField txtUserName = new TextField();
-		Button btnLogin = new Button("Login");
-
-		Label lblMessage = new Label();
-		lblMessage.setTextFill(Color.RED);
-		gridPane.add(lblUserName, 0, 0);
-		gridPane.add(txtUserName, 1, 0);
-		gridPane.add(btnLogin, 1, 1);
-		gridPane.add(lblMessage, 1, 2);
-		Text text = new Text("Astroid connection");
-		text.setFont(Font.font("Times New Roman", 30));
-		hb.getChildren().add(text);
-		bp.setTop(hb);
-		bp.setCenter(gridPane);
-		Scene connexion = new Scene(bp);
-		primaryStage.setScene(connexion);
-		primaryStage.setResizable(false);
-		btnLogin.setOnAction((event) -> {
-			outChan.print("CONNECT/" + txtUserName.getText());
-			outChan.flush();
-			name = txtUserName.getText();
-			try {
-				synchronized (listener) {
-					System.out.println("QFQSF");
-					listener.wait();
-					System.out.println("qshhgf");
-					changeScene();
-				}
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-		});
+		changeScene(Ecran.ACCUEIL);
 		primaryStage.show();
 
 	}
 
-	public void changeScene() {
-		primaryStage.setScene(new Scene(createContent()));
+	public void changeScene(Ecran ecran) {
+		switch (ecran) {
+		case JEU:
+			primaryStage.setScene(new Scene(createContent()));
 
-		primaryStage.getScene().setOnKeyPressed(e -> {
-			if (e.getCode() == KeyCode.LEFT) {
-				player.rotateLeft();
-			}
-			if (e.getCode() == KeyCode.RIGHT) {
-				player.rotateRight();
-			}
-			if (e.getCode() == KeyCode.UP) {
-				player.move();
+			primaryStage.getScene().setOnKeyPressed(e -> {
+				if (e.getCode() == KeyCode.LEFT) {
+					player.rotateLeft();
+				}
+				if (e.getCode() == KeyCode.RIGHT) {
+					player.rotateRight();
+				}
+				if (e.getCode() == KeyCode.UP) {
+					player.move();
 
-			}
-		});
+				}
+			});
+			break;
+		case ACCUEIL:
+			BorderPane bp = new BorderPane();
+			bp.setPadding(new Insets(10, 50, 50, 50));
+			// Adding HBox
+			HBox hb = new HBox();
+			hb.setPadding(new Insets(20, 20, 20, 30));
+			// Adding GridPane
+			GridPane gridPane = new GridPane();
+			gridPane.setPadding(new Insets(20, 20, 20, 20));
+			gridPane.setHgap(5);
+			gridPane.setVgap(5);
+			// Implementing Nodes for GridPane
+			Label lblUserName = new Label("Username");
+			TextField txtUserName = new TextField();
+			Button btnLogin = new Button("Login");
 
+			Label lblMessage = new Label();
+			lblMessage.setTextFill(Color.RED);
+			gridPane.add(lblUserName, 0, 0);
+			gridPane.add(txtUserName, 1, 0);
+			gridPane.add(btnLogin, 1, 1);
+			gridPane.add(lblMessage, 1, 2);
+			Text text = new Text("Astroid connection");
+			text.setFont(Font.font("Times New Roman", 30));
+			hb.getChildren().add(text);
+			bp.setTop(hb);
+			bp.setCenter(gridPane);
+			Scene connexion = new Scene(bp);
+			primaryStage.setScene(connexion);
+			primaryStage.setResizable(false);
+			btnLogin.setOnAction((event) -> {
+				e.connexion(txtUserName.getText());
+				name = txtUserName.getText();
+				try {
+					synchronized (listener) {
+						listener.wait();
+						changeScene(Ecran.JEU);
+					}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			});
+			break;
+		}
 	}
 
 	private void addGameObject(GameObject object, double x, double y) {
@@ -160,43 +156,67 @@ public class IHMclient extends Application {
 	}
 
 	private void onUpdate() {
+		if (i++ % refreshTickRate == 0) {
+			double x = player.getPosX();
+			double y = player.getPosY();
+			double angle = player.getAngleAEnvoyer();
+			double thrust = player.getThrustAEnvoyer();
+			if (e != null) {
+				e.newCom(angle, thrust);
+				e.newPos(x, y);
+				player.resetValeurs();
+			} else {
+				System.out.println("NO ENTRA AQUI");
+			}
+		}
 		player.update();
 	}
 
 	private Parent createContent() {
-		root = new Pane();
-
+		root = new GridPane();
 		root.setPrefSize(LARGEUR, HAUTEUR);
+		Button btnExit = new Button("Exit");
+		root.add(btnExit, 1, 1);
+		btnExit.setOnAction((event) -> {
+			e.exit(name);
+			changeScene(Ecran.ACCUEIL);
+		});
+		addGameObject(objectif, objectif.getX() + root.getPrefWidth() / 2, objectif.getY() + root.getPrefHeight() / 2);
 		Polygon p;
-		Ship vaisseauAAjouter;
+		Vaisseau vaisseauAAjouter;
 		Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
 		while (iterateur.hasNext()) {
 			Entry<String, Vaisseau> courant = iterateur.next();
 			if (courant.getKey().equals(name)) {
 				p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 				p.setRotate(-90);
-				player = new Ship(p, root.getPrefWidth(), root.getPrefHeight());
+				p.setFill(Color.BLUE);
+				player = courant.getValue();
+				player.setNode(p);
+				player.setLimits(root.getPrefWidth(), root.getPrefHeight());
 				player.setVelocity(new Point2D(0, 0));
-				addGameObject(player, courant.getValue().getPosX() + LARGEUR / 2,
-						courant.getValue().getPosY() + HAUTEUR / 2);
+				addGameObject(player, courant.getValue().getPosX() + root.getPrefWidth() / 2,
+						courant.getValue().getPosY() + root.getPrefHeight() / 2);
 			} else {
 				p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 				p.setRotate(-90);
-				vaisseauAAjouter = new Ship(p, root.getPrefWidth(), root.getPrefHeight());
+				p.setFill(Color.RED);
+				vaisseauAAjouter = courant.getValue();
+				vaisseauAAjouter.setNode(p);
+				vaisseauAAjouter.setLimits(root.getPrefWidth(), root.getPrefHeight());
 				vaisseauAAjouter.setVelocity(new Point2D(0, 0));
-				addGameObject(vaisseauAAjouter, courant.getValue().getPosX(), courant.getValue().getPosY());
+				addGameObject(vaisseauAAjouter, courant.getValue().getPosX() + root.getPrefWidth() / 2,
+						courant.getValue().getPosY() + root.getPrefHeight() / 2);
 			}
 		}
 		// p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 		// p.setRotate(-90);
 		// player = new Ship(p, root.getPrefWidth(), root.getPrefHeight());
 		// player.setVelocity(new Point2D(0, 0));
-		// addGameObject(player, 0, 0);
-
+		// addGameObject(player, 0, 0
 		AnimationTimer timer = new AnimationTimer() {
 			@Override
 			public void handle(long now) {
-
 				onUpdate();
 			}
 		};

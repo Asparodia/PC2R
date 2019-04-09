@@ -2,9 +2,7 @@ package ihmexemple;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 
 import gameobjects.Vaisseau;
 import javafx.animation.AnimationTimer;
@@ -20,7 +18,7 @@ import javafx.stage.Stage;
 //import java.util.ArrayList;
 //import java.util.List;
 
-public class AsteroidsApp extends Application  {
+public class AsteroidsApp extends Application {
 
 	private Pane root;
 
@@ -34,26 +32,28 @@ public class AsteroidsApp extends Application  {
 	private String nomJoueur;
 	private List<Ship> players = new ArrayList<>();
 
-//	public void init(HashMap<String, Vaisseau> vehicules, String nomJoueur) {
-//		this.vehicules = vehicules;
-//		System.out.println("ET LA " + this.vehicules);
-//		this.nomJoueur = nomJoueur;
-//		Iterator<Entry<String, Vaisseau>> iterateur = this.vehicules.entrySet().iterator();
-//		while (iterateur.hasNext()) {
-//			Entry<String, Vaisseau> courant = iterateur.next();
-//			String nom = courant.getKey();
-//			Vaisseau vaisseau = courant.getValue();
-//			if (nom.equals(this.nomJoueur)) {
-//				Polygon p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
-//				p.setRotate(-90);
-//				player = new Ship(p, vaisseau.getPosX(), vaisseau.getPosY());
-//				player.setVelocity(new Point2D(0, 0));
-//			}
-//		}
-//	}
+	// public void init(HashMap<String, Vaisseau> vehicules, String nomJoueur) {
+	// this.vehicules = vehicules;
+	// System.out.println("ET LA " + this.vehicules);
+	// this.nomJoueur = nomJoueur;
+	// Iterator<Entry<String, Vaisseau>> iterateur =
+	// this.vehicules.entrySet().iterator();
+	// while (iterateur.hasNext()) {
+	// Entry<String, Vaisseau> courant = iterateur.next();
+	// String nom = courant.getKey();
+	// Vaisseau vaisseau = courant.getValue();
+	// if (nom.equals(this.nomJoueur)) {
+	// Polygon p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
+	// p.setRotate(-90);
+	// player = new Ship(p, vaisseau.getPosX(), vaisseau.getPosY());
+	// player.setVelocity(new Point2D(0, 0));
+	// }
+	// }
+	// }
 
 	private Parent createContent() {
 		root = new Pane();
+
 		root.setPrefSize(600, 600);
 
 		Polygon p;
@@ -61,9 +61,9 @@ public class AsteroidsApp extends Application  {
 
 		p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 		p.setRotate(-90);
-		player = new Ship(p, 100, 100);
+		player = new Ship(p, 600, 600);
 		player.setVelocity(new Point2D(0, 0));
-		addGameObject(player, 300, 300);
+		addGameObject(player, 600, 600);
 
 		AnimationTimer timer = new AnimationTimer() {
 			@Override
