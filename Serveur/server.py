@@ -13,8 +13,8 @@ print(H)
 P = 2019
 DATA = 1024
 
-hauteur = 400.0
-largeur = 400.0
+hauteur = 100.0
+largeur = 100.0
 
 mutexJoueurs = threading.Lock()
 joueurs = dict()
@@ -36,10 +36,6 @@ server_refresh_tickrate = threading.Event()
 MAX_VITESSE = 6.0
 
 ##########################################################################
-def distance(x1,y1,x2,y2):
-    return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
-    
-
 class Ship():
     def __init__(self, n):
         self.name = n
@@ -63,10 +59,6 @@ class Objectif():
         self.posX = random.uniform(-largeur, largeur)
         self.posY = random.uniform(-hauteur, hauteur)
         self.valeur = 1 # Pour différencier si jamais on met plusieurs types d'objets récupérables
-
-    def resetPos(self):
-        self.posX = random.uniform(-largeur, largeur)
-        self.posY = random.uniform(-hauteur, hauteur)
         
 objectif = Objectif()
 ##########################################################################
@@ -118,7 +110,6 @@ class Connexion(threading.Thread):
             reply = (request.decode()).split("/")
             
             if (reply[0] == "CONNECT"):
-                print("LA CONNEXION")
                 if(reply[1] in joueurs):
                     m = "DENIED\n"
                     self.clientSock.send(m.encode())
@@ -202,7 +193,7 @@ class Connexion(threading.Thread):
                 c =reply[1][1:]
                 rc = c.split('Y')
                 del c
-                self.ship.posX = float(rc[0])%largeur
+                self.ship.posX = float(rc[0])%largeur #Bizarre ici aussi
                 self.ship.posY = float(rc[1])%hauteur
                 del rc
                 m = "POSITION_SET\n"
@@ -218,7 +209,7 @@ class Connexion(threading.Thread):
                 if(acceptingNewCommands):
                     try:
                         mutexNewCom.acquire()
-                        # ILFAUT FAIRE ATTENTCION ICI PARCE QUE LE BOOLEEN acceptingNewCommands
+                        # IL FAUT FAIRE ATTENTCION ICI PARCE QUE LE BOOLEEN acceptingNewCommands
                         if(self.name not in newCommandes):
                             newCommandes[self.name] = list()
                         newCommandes[self.name].append(com)
@@ -247,7 +238,6 @@ class Arena(threading.Thread):
         self.joueurs = players
         self.vehicules = vejhicles
         self.maxScore = 5
-        self.winner = False
         
     def run(self):
         while(True):
@@ -279,31 +269,21 @@ class Arena(threading.Thread):
                 del m
             tick = Tickrate(2)
             tick.start()
-            while not self.winner:
+            while True:
                 server_refresh_tickrate.wait()
                 if(len(joueurs)== 0):
                     break
                 self.computeCommands()
-            if(self.winner):
-                try:
-                    mutexVehicules.acquire()
-                    w = "WINNER/"
-                    for (joueur, ship) in vehicules.items():
-                        w += joueur + ":" + str(ship.score)+"|"
-                    w = w[:-1]
-                    w += "\n"
-                    for (joueur, s) in self.joueurs.items():
-                            s.clientSock.send(w.encode())
-                finally:
-                    mutexVehicules.release()
             tick.finDeSession.set()
             finTimer.clear() 
-    
+
     def computeCommands(self):
         global newCommandes
         global acceptingNewCommands
+        global MAX_VITESSE
+        global hauteur
+        global largeur
         reponse = "TICK/"
-        newObj = "NEWOBJ/"
         try:
             mutexNewCom.acquire()
             if(len(newCommandes) > 0):
@@ -314,58 +294,59 @@ class Arena(threading.Thread):
                         a,t = c.split(":")
                         #FAIRE MIEUX LES CLACULS CAR CA NE MARCHE POINT
                         vehicule.direction += float(a)
-                        vehicule.vX = min(vehicule.vX + float(t)*math.cos(vehicule.direction),MAX_VITESSE)
-                        vehicule.vY = min(vehicule.vY + float(t)*math.sin(vehicule.direction),MAX_VITESSE)
 
-                        vehicule.posX = (vehicule.posX + vehicule.vX)
-                        if(math.fabs(vehicule.posX) > largeur):
-                            if(vehicule.posX > 0):
-                                vehicule.posX %= largeur
-                                vehicule.posX -= largeur
-                            else:
-                                vehicule.posX %= largeur
-                                vehicule.posX = -vehicule.posX
-                                vehicule.posX += largeur
-                        vehicule.posY = (vehicule.posY + vehicule.vY)
-                        if(math.fabs(vehicule.posY) > hauteur):
-                            if(vehicule.posY > 0):
-                                vehicule.posY %= hauteur
-                                vehicule.posY -= hauteur
-                            else:
-                                vehicule.posY %= hauteur
-                                vehicule.posY = -vehicule.posY
-                                vehicule.posY += hauteur
-                        try:
-                            mutexObjectif.acquire()
-                            if(distance(objectif.posX,objectif.posY,vehicule.posX,vehicule.posY)<30.0):
-                                vehicule.score +=objectif.valeur;
-                                if(vehicule.score >=self.maxScore):
-                                    print("wiiiiiiiiiiiiiiiiiii") #winner
-                                    self.winner = True
-                                else:
-                                    objectif.resetPos()
-                                    tmpx = "X"+str(objectif.posX)
-                                    tmpy = "Y"+str(objectif.posY)
-                                    newObj+=tmpx+tmpy+"/"
-                                    for (nom, vehicule) in vehicules.items():
-                                        newObj+= nom + ":" + str(vehicule.score) +"|"
-                                        newObj = newObj[:-1]
-                                        newObj += "/"
-                                    newObj += "\n"
-                        finally:
-                            mutexObjectif.release()
+                        vehicule.posX += largeur
+                        vehicule.posY += hauteur
+
+                        #vitesseX = 0.0
+                        #vitesseY = 0.0
+
+                        if((vehicule.vX + float(t)) >= MAX_VITESSE):
+                            vitesseX = MAX_VITESSE
+                        elif((vehicule.vX + float(t)) <= -MAX_VITESSE):
+                            vitesseX = -MAX_VITESSE
+                        else:
+                            vitesseX = vehicule.vX + float(t)
+                        vehicule.vX = vitesseX + math.cos(vehicule.direction)
+
+                        if((vehicule.vY + float(t)) >= MAX_VITESSE):
+                            vitesseY = MAX_VITESSE
+                        elif((vehicule.vY + float(t)) <= -MAX_VITESSE):
+                            vitesseY = -MAX_VITESSE
+                        else:
+                            vitesseY = vehicule.vY+ float(t)
+                            
+                        vehicule.vY = vitesseY + math.sin(vehicule.direction)
+                        vehicule.posX = (vehicule.posX + vehicule.vX + 2*largeur)%(2*largeur)
+##                        if(math.fabs(vehicule.posX) > largeur):
+##                            if(vehicule.posX > 0):
+##                                vehicule.posX %= largeur
+##                                vehicule.posX -= largeur
+##                            else:
+##                                vehicule.posX %= largeur
+##                                vehicule.posX = -vehicule.posX
+##                                vehicule.posX += largeur
+                        vehicule.posY = (vehicule.posY + vehicule.vY + 2*hauteur)%(2*hauteur)
+##                        if(math.fabs(vehicule.posY) > hauteur):
+##                            if(vehicule.posY > 0):
+##                                vehicule.posY %= hauteur
+##                                vehicule.posY -= hauteur
+##                            else:
+##                                vehicule.posY %= hauteur
+##                                vehicule.posY = -vehicule.posY
+##                                vehicule.posY += hauteur
+                        vehicule.posX -= largeur
+                        vehicule.posY -= hauteur
+                        print("X:",vehicule.posX)
+                        print("Y:",vehicule.posY)
                     reponse += str(k)+":"+"X"+str(vehicule.posX)+"Y"+str(vehicule.posY)+"VX"+str(vehicule.vX)+"VY"+str(vehicule.vY)+"T"+str(vehicule.direction)+"|"
+
                 newCommandes = dict()
                 reponse = reponse[:-1]
                 reponse += "\n"
                 for (joueur, s) in self.joueurs.items():
                     print(reponse)
                     s.clientSock.send(reponse.encode())
-                if(len(newObj)>8):
-                    print("sending new obj")
-                    for (joueur, s) in self.joueurs.items():
-                        s.clientSock.send(newObj.encode())
-                    
         finally:
             acceptingNewCommands = True
             mutexNewCom.release()

@@ -36,7 +36,7 @@ import javafx.stage.Stage;
 
 public class IHMclient extends Application {
 	protected final static int PORT = 2019;
-	protected final static String HOST = "ppti-14-509-04";
+	protected final static String HOST = "ppti-14-509-05";
 	HashMap<String, Vaisseau> vehicules = new HashMap<>();
 	private Envoi e;
 	private GridPane root;
@@ -46,8 +46,8 @@ public class IHMclient extends Application {
 	public Condition changeLaScene = verrou.newCondition();
 	private Object listener = new Object();
 	String name = "";
-	public final static int LARGEUR = 800;
-	public final static int HAUTEUR = 800;
+	public final static int LARGEUR = 200;
+	public final static int HAUTEUR = 200;
 	private int refreshTickRate = 30;
 	int i = 0;
 	private Objectif objectif;
@@ -156,6 +156,8 @@ public class IHMclient extends Application {
 	}
 
 	private void onUpdate() {
+		System.out.println("X : "+ player.getPosX());
+		System.out.println("Y : "+ player.getPosY());
 		if (i++ % refreshTickRate == 0) {
 			double x = player.getPosX();
 			double y = player.getPosY();

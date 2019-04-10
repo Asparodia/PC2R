@@ -19,6 +19,7 @@ public class Vaisseau extends GameObject {
 	private final static double CAPVITESSE = 6.0;
 	private double angleAenvoyer = 0.0;
 	private double thrustAEnvoyer = 0.0;
+	private final static double THRUST = 2;
 
 	public Vaisseau(Node view, String n, String px, String py) {
 		super(view);
@@ -45,8 +46,12 @@ public class Vaisseau extends GameObject {
 	@Override
 	public void update() {
 		// if (boom) {
-		posX += velocity.getX();
-		posY += velocity.getY();
+		posX += maxWidth / 2;
+		posX = (velocity.getX() + posX + maxWidth) % (maxWidth);
+		posX -= maxWidth / 2;
+		posY += maxHeight / 2;
+		posY = (velocity.getY() + posY + maxHeight) % (maxHeight);
+		posY -= maxHeight / 2;
 		view.setTranslateX((view.getTranslateX() + velocity.getX() + maxWidth) % maxWidth);
 		view.setTranslateY((view.getTranslateY() + velocity.getY() + maxHeight) % maxHeight);
 	}
