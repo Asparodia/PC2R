@@ -34,7 +34,6 @@ public class Reception extends Thread {
 				System.out.println("bye bye");
 				break;
 			}
-			// System.out.println(line);
 			String[] separation = line.split("/");
 			if (separation[0].equals("TICK")) {
 				if (separation.length > 1) {
@@ -48,6 +47,7 @@ public class Reception extends Thread {
 			}
 			if (separation[0].equals("WELCOME")) {
 				nomJoueur = line.split("/")[2].split(":")[0];
+				System.out.println(line);
 
 			} else if (separation[0].equals("SESSION")) {
 				String[] listeVehicules = separation[1].split("\\|");
@@ -66,7 +66,18 @@ public class Reception extends Thread {
 				synchronized (ihm) {
 					ihm.notifyAll();
 				}
-			} else {
+			}if (separation[0].equals("NEWOBJ")) {
+				String[] newObj = separation[1].split("Y");
+				String x1 = newObj[0].substring(1, newObj[0].length() - 1);
+				
+				objectif.setX(new Double(x1));
+				objectif.setY(new Double(newObj[1]));
+				objectif.majPos();
+				System.out.println("Newobjectif");
+				String[] scores = separation[2].split("\\|");
+				System.out.println(scores[0]);
+			}
+			else {
 				// System.out.println("CAS NON TRAITE");
 			}
 		}

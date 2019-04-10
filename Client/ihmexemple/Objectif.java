@@ -28,4 +28,8 @@ public class Objectif extends GameObject {
 	public void setY(double y1) {
 		y = y1;
 	}
+	public void majPos() {
+		this.view.setTranslateX(x);
+		this.view.setTranslateY(y);
+	}
 }

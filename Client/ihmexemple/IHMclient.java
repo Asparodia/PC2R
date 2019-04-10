@@ -36,7 +36,7 @@ import javafx.stage.Stage;
 
 public class IHMclient extends Application {
 	protected final static int PORT = 2019;
-	protected final static String HOST = "ppti-14-509-08";
+	protected final static String HOST = "ppti-14-509-04";
 	HashMap<String, Vaisseau> vehicules = new HashMap<>();
 	private Envoi e;
 	private GridPane root;
@@ -227,9 +227,5 @@ public class IHMclient extends Application {
 
 	public static void main(String[] args) {
 		launch();
-	}
-
-	public void setChangeListener(ChangeListener listener) {
-		this.listener = listener;
 	}
 }
