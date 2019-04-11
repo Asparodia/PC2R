@@ -13,8 +13,8 @@ print("hostname :",H)
 P = 2019
 DATA = 1024
 
-hauteur = 100.0
-largeur = 100.0
+hauteur = 200.0
+largeur = 200.0
 
 mutexJoueurs = threading.Lock()
 joueurs = dict()
@@ -33,7 +33,7 @@ finTimer = threading.Event()
 
 server_refresh_tickrate = threading.Event()
 
-MAX_VITESSE = 6.0
+MAX_VITESSE = 5.0
 
 ##########################################################################
 def distance(x1,y1,x2,y2):
@@ -83,7 +83,7 @@ class Timer(threading.Thread):
             print(">>>>>> Il reste "+str(self.temps-self.decompte)+" secondes")
             self.zeroJoueur.wait(timeout = self.pasTimer)
             self.decompte += self.pasTimer
-        
+            
         global finTimer
         finTimer.set()
 
@@ -245,8 +245,8 @@ class Arena(threading.Thread):
         self.joueurs = players
         self.vehicules = vejhicles
         self.maxScore = 5
-	self.winner = False
-        
+        self.winner = False
+
     def run(self):
         while(True):
             print("DEBUT")
@@ -282,7 +282,7 @@ class Arena(threading.Thread):
                 if(len(joueurs)== 0):
                     break
                 self.computeCommands()
-	    if(self.winner):
+            if(self.winner):
                 try:
                     mutexVehicules.acquire()
                     w = "WINNER/"
@@ -305,15 +305,16 @@ class Arena(threading.Thread):
         global hauteur
         global largeur
         reponse = "TICK/"
-	newObj = "NEWOBJ/"
+        newObj = "NEWOBJ/"
         try:
-	    
             mutexNewCom.acquire()
-	    mutexVehicules.acquire()
             if(len(newCommandes) > 0):
-                acceptingNewCommands = False
+                acceptingNewCommands = False                
                 for (k, v) in newCommandes.items():
-                    vehicule = vehicules[k]
+                    try:
+                        vehicule = vehicules[k]
+                    except Exception:
+                        print(k," left")
                     for c in v:
                         a,t = c.split(":")
                         #FAIRE MIEUX LES CLACULS CAR CA NE MARCHE POINT
@@ -322,46 +323,70 @@ class Arena(threading.Thread):
                         vehicule.posX += largeur
                         vehicule.posY += hauteur
 
-                        #vitesseX = 0.0
-                        #vitesseY = 0.0
+                        nouvelleVitesseX = vehicule.vX + float(t)*math.cos(vehicule.direction)
+                        nouvelleVitesseY = vehicule.vY + float(t)*math.sin(vehicule.direction)
 
-                        if((vehicule.vX + float(t)) >= MAX_VITESSE):
-                            vitesseX = MAX_VITESSE
-                        elif((vehicule.vX + float(t)) <= -MAX_VITESSE):
-                            vitesseX = -MAX_VITESSE
+                        if(nouvelleVitesseX > 0):
+                            if(nouvelleVitesseY > 0):
+                                vehicule.vX = min(nouvelleVitesseX, MAX_VITESSE)
+                                vehicule.vY = min(nouvelleVitesseY, MAX_VITESSE)
+                            else:
+                                vehicule.vX = min(nouvelleVitesseX, MAX_VITESSE)
+                                vehicule.vY = max(nouvelleVitesseY, -MAX_VITESSE)
                         else:
-                            vitesseX = vehicule.vX + float(t)
-                        vehicule.vX = vitesseX + math.cos(vehicule.direction)
+                            if(nouvelleVitesseY > 0):
+                                vehicule.vX = max(nouvelleVitesseX, -MAX_VITESSE)
+                                vehicule.vY = min(nouvelleVitesseY, MAX_VITESSE)
+                            else:
+                                vehicule.vX = max(nouvelleVitesseX, -MAX_VITESSE)
+                                vehicule.vY = max(nouvelleVitesseY, -MAX_VITESSE)
 
-                        if((vehicule.vY + float(t)) >= MAX_VITESSE):
-                            vitesseY = MAX_VITESSE
-                        elif((vehicule.vY + float(t)) <= -MAX_VITESSE):
-                            vitesseY = -MAX_VITESSE
-                        else:
-                            vitesseY = vehicule.vY+ float(t)
-                            
-                        vehicule.vY = vitesseY + math.sin(vehicule.direction)
-                        vehicule.posX = (vehicule.posX + vehicule.vX + 2*largeur)%(2*largeur)
-##                        if(math.fabs(vehicule.posX) > largeur):
-##                            if(vehicule.posX > 0):
-##                                vehicule.posX %= largeur
-##                                vehicule.posX -= largeur
-##                            else:
-##                                vehicule.posX %= largeur
-##                                vehicule.posX = -vehicule.posX
-##                                vehicule.posX += largeur
-                        vehicule.posY = (vehicule.posY + vehicule.vY + 2*hauteur)%(2*hauteur)
-##                        if(math.fabs(vehicule.posY) > hauteur):
-##                            if(vehicule.posY > 0):
-##                                vehicule.posY %= hauteur
-##                                vehicule.posY -= hauteur
-##                            else:
-##                                vehicule.posY %= hauteur
-##                                vehicule.posY = -vehicule.posY
-##                                vehicule.posY += hauteur
+                        vehicule.posX = (vehicule.vX + vehicule.posX + largeur*2)%(2*largeur)
+                        vehicule.posY = (vehicule.vY + vehicule.posY + hauteur*2)%(2*hauteur)
+
                         vehicule.posX -= largeur
                         vehicule.posY -= hauteur
-			try:
+##
+##                        #vitesseX = 0.0
+##                        #vitesseY = 0.0
+##
+##                        if((vehicule.vX + float(t)) >= MAX_VITESSE):
+##                            vitesseX = MAX_VITESSE
+##                        elif((vehicule.vX + float(t)) <= -MAX_VITESSE):
+##                            vitesseX = -MAX_VITESSE
+##                        else:
+##                            vitesseX = vehicule.vX + float(t)
+##                        vehicule.vX = vitesseX + math.cos(vehicule.direction)
+##
+##                        if((vehicule.vY + float(t)) >= MAX_VITESSE):
+##                            vitesseY = MAX_VITESSE
+##                        elif((vehicule.vY + float(t)) <= -MAX_VITESSE):
+##                            vitesseY = -MAX_VITESSE
+##                        else:
+##                            vitesseY = vehicule.vY+ float(t)
+##                            
+##                        vehicule.vY = vitesseY + math.sin(vehicule.direction)
+##                        vehicule.posX = (vehicule.posX + vehicule.vX + 2*largeur)%(2*largeur)
+####                        if(math.fabs(vehicule.posX) > largeur):
+####                            if(vehicule.posX > 0):
+####                                vehicule.posX %= largeur
+####                                vehicule.posX -= largeur
+####                            else:
+####                                vehicule.posX %= largeur
+####                                vehicule.posX = -vehicule.posX
+####                                vehicule.posX += largeur
+##                        vehicule.posY = (vehicule.posY + vehicule.vY + 2*hauteur)%(2*hauteur)
+####                        if(math.fabs(vehicule.posY) > hauteur):
+####                            if(vehicule.posY > 0):
+####                                vehicule.posY %= hauteur
+####                                vehicule.posY -= hauteur
+####                            else:
+####                                vehicule.posY %= hauteur
+####                                vehicule.posY = -vehicule.posY
+####                                vehicule.posY += hauteur
+##                        vehicule.posX -= largeur
+##                        vehicule.posY -= hauteur
+                        try:
                             mutexObjectif.acquire()
                             if(distance(objectif.posX,objectif.posY,vehicule.posX,vehicule.posY)<20.0):
                                 vehicule.score +=objectif.valeur;
@@ -373,8 +398,12 @@ class Arena(threading.Thread):
                                     tmpx = "X"+str(objectif.posX)
                                     tmpy = "Y"+str(objectif.posY)
                                     newObj+=tmpx+tmpy+"/"
-                                    for (nom, vehicule) in vehicules.items():
-                                        newObj+= nom + ":" + str(vehicule.score) +"|"
+                                    try:
+                                        mutexVehicules.acquire()
+                                        for (nom, vehicule) in vehicules.items():
+                                            newObj+= nom + ":" + str(vehicule.score) +"|"
+                                    finally:
+                                        mutexVehicules.release()
                                     newObj = newObj[:-1]
                                     newObj += "/"
                                     newObj += "\n"
@@ -384,22 +413,19 @@ class Arena(threading.Thread):
                         print("Y:",vehicule.posY)
                     reponse += str(k)+":"+"X"+str(vehicule.posX)+"Y"+str(vehicule.posY)+"VX"+str(vehicule.vX)+"VY"+str(vehicule.vY)+"T"+str(vehicule.direction)+"|"
                 newCommandes = dict()
-		mutexVehicules.release()
                 reponse = reponse[:-1]
                 reponse += "\n"
                 for (joueur, s) in self.joueurs.items():
-                    print(reponse)
+                    #print(reponse)
                     s.clientSock.send(reponse.encode())
-		if(len(newObj)>8):
+                if(len(newObj)>8):
                     print("sending new obj")
                     for (joueur, s) in self.joueurs.items():
                         s.clientSock.send(newObj.encode())
         finally:
             acceptingNewCommands = True
+            mutexNewCom.release()
             
-	    mutexNewCom.release()
-        
-                
 ###############################################################################
 class Server:
      def __init__(self,host=H,port=P):

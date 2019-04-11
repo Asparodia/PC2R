@@ -13,12 +13,14 @@ public class Vaisseau extends GameObject {
 	private double vX;
 	private double vY;
 	private int score;
-	
+
 	private double maxWidth;
 	private double maxHeight;
-	
-	private final static double CAPVITESSE = 6.0;
-	private final static double THRUST = 2;
+
+	private final static double CAPVITESSE = 5.0;
+	private final static double THRUST = 1;
+	private final static double CLOCK = 6.0;
+	private final static double ANTICLOCK = -6.0;
 	private double angleAenvoyer = 0.0;
 	private double thrustAEnvoyer = 0.0;
 
@@ -53,28 +55,45 @@ public class Vaisseau extends GameObject {
 		posY += maxHeight / 2;
 		posY = (velocity.getY() + posY + maxHeight) % (maxHeight);
 		posY -= maxHeight / 2;
-		view.setTranslateX((view.getTranslateX() + velocity.getX() + maxWidth) % maxWidth);
-		view.setTranslateY((view.getTranslateY() + velocity.getY() + maxHeight) % maxHeight);
+		view.setTranslateX((view.getTranslateX() + velocity.getX() + maxWidth)
+				% maxWidth);
+		view.setTranslateY((view.getTranslateY() + velocity.getY() + maxHeight)
+				% maxHeight);
 	}
 
 	public void rotateRight() {
-		view.setRotate(view.getRotate() + 6);
-		angleAenvoyer += Math.toRadians(6);
+		view.setRotate(view.getRotate() + CLOCK);
+		angleAenvoyer += Math.toRadians(CLOCK);
 	}
 
 	public void rotateLeft() {
-		view.setRotate(view.getRotate() - 6);
-		angleAenvoyer += Math.toRadians(-6);
+		view.setRotate(view.getRotate() + ANTICLOCK);
+		angleAenvoyer += Math.toRadians(ANTICLOCK);
 	}
 
 	public void move() {
-		thrustAEnvoyer += 1;
-		double x = (velocity.getX() >= CAPVITESSE) ? CAPVITESSE
-				: (velocity.getX() <= -CAPVITESSE) ? -CAPVITESSE : velocity.getX();
-		double y = (velocity.getY() >= CAPVITESSE) ? CAPVITESSE
-				: (velocity.getY() <= -CAPVITESSE) ? -CAPVITESSE : velocity.getY();
-
-		setVelocity(new Point2D(x + Math.cos(Math.toRadians(getRotate())), y + Math.sin(Math.toRadians(getRotate()))));
+		thrustAEnvoyer = Math.min(thrustAEnvoyer + 1, CAPVITESSE);
+		double x = velocity.getX() + THRUST
+				* Math.cos(Math.toRadians(getRotate()));
+		double y = velocity.getY() + THRUST
+				* Math.sin(Math.toRadians(getRotate()));
+		if (x > 0) {
+			if (y > 0) {
+				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.min(y,
+						CAPVITESSE)));
+			} else {
+				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.max(y,
+						-CAPVITESSE)));
+			}
+		} else {
+			if (y > 0) {
+				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.min(y,
+						CAPVITESSE)));
+			} else {
+				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.max(y,
+						-CAPVITESSE)));
+			}
+		}
 	}
 
 	public double getAngleAEnvoyer() {
@@ -152,8 +171,9 @@ public class Vaisseau extends GameObject {
 
 	@Override
 	public String toString() {
-		return  "Nom = " + name + "/" +" PosX : " + posX + "/PosY : " + posY + "/Direction : " + direction
-				+ "/vX : " + vX + "/vY : " + vY + "/Score : " + score;
+		return "Nom = " + name + "/" + " PosX : " + posX + "/PosY : " + posY
+				+ "/Direction : " + direction + "/vX : " + vX + "/vY : " + vY
+				+ "/Score : " + score;
 	}
 
 	public void setLimits(double maxWidth, double maxHeight) {
