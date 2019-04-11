@@ -8,9 +8,6 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
-
 import client.Envoi;
 import client.Reception;
 import gameobjects.Vaisseau;
@@ -35,41 +32,49 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 public class IHMclient extends Application {
+	
+	// INFO A CONFIG POUR SE CO
 	protected final static int PORT = 2019;
 	protected final static String HOST = "ppti-14-509-05";
-	HashMap<String, Vaisseau> vehicules = new HashMap<>();
-	private Envoi e;
-	private GridPane root;
-	private Vaisseau player;
-	Stage primaryStage;
-	ReentrantLock verrou = new ReentrantLock();
-	public Condition changeLaScene = verrou.newCondition();
-	private Object listener = new Object();
-	String name = "";
+	
 	public final static int LARGEUR = 200;
 	public final static int HAUTEUR = 200;
+	private GridPane root;
+	Stage primaryStage;
 	private int refreshTickRate = 30;
-	int i = 0;
+	int tick = 0;
+	
 	private Objectif objectif;
+	private Vaisseau player;
+	String name = "";
+	HashMap<String, Vaisseau> vehicules = new HashMap<>();
+	
+	
+	private Envoi e;
+	private Object listener = new Object();
+	
 
 	public IHMclient() {
+		
 		Socket s = null;
 		try {
-			System.out.println(HOST);
-			s = new Socket(HOST, PORT);
 
+			s = new Socket(HOST, PORT);
+			System.out.println("host : "+ HOST+" port : "+PORT);
+			
 			BufferedReader inChan = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			PrintStream outChan = new PrintStream(s.getOutputStream());
-			Circle cercle = new Circle(25);
+			
+			Circle cercle = new Circle(20);
 			cercle.setFill(Color.LAWNGREEN);
 			objectif = new Objectif(cercle, 0, 0);
+			
 			Reception r = new Reception(inChan, vehicules, listener, objectif);
 			e = new Envoi(outChan, vehicules);
 
 			r.start();
 		} catch (IOException e) {
 			System.err.println(e);
-
 		}
 
 	}
@@ -80,7 +85,6 @@ public class IHMclient extends Application {
 		primaryStage.setTitle("Astroid");
 		changeScene(Ecran.ACCUEIL);
 		primaryStage.show();
-
 	}
 
 	public void changeScene(Ecran ecran) {
@@ -101,17 +105,22 @@ public class IHMclient extends Application {
 				}
 			});
 			break;
+			
 		case ACCUEIL:
+			
 			BorderPane bp = new BorderPane();
 			bp.setPadding(new Insets(10, 50, 50, 50));
 			// Adding HBox
+			
 			HBox hb = new HBox();
 			hb.setPadding(new Insets(20, 20, 20, 30));
+			
 			// Adding GridPane
 			GridPane gridPane = new GridPane();
 			gridPane.setPadding(new Insets(20, 20, 20, 20));
 			gridPane.setHgap(5);
 			gridPane.setVgap(5);
+			
 			// Implementing Nodes for GridPane
 			Label lblUserName = new Label("Username");
 			TextField txtUserName = new TextField();
@@ -128,7 +137,9 @@ public class IHMclient extends Application {
 			hb.getChildren().add(text);
 			bp.setTop(hb);
 			bp.setCenter(gridPane);
+			
 			Scene connexion = new Scene(bp);
+			
 			primaryStage.setScene(connexion);
 			primaryStage.setResizable(false);
 			btnLogin.setOnAction((event) -> {
@@ -140,7 +151,6 @@ public class IHMclient extends Application {
 						changeScene(Ecran.JEU);
 					}
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
@@ -156,9 +166,7 @@ public class IHMclient extends Application {
 	}
 
 	private void onUpdate() {
-		System.out.println("X : "+ player.getPosX());
-		System.out.println("Y : "+ player.getPosY());
-		if (i++ % refreshTickRate == 0) {
+		if (tick++ % refreshTickRate == 0) {
 			double x = player.getPosX();
 			double y = player.getPosY();
 			double angle = player.getAngleAEnvoyer();
@@ -175,20 +183,26 @@ public class IHMclient extends Application {
 	}
 
 	private Parent createContent() {
+		
 		root = new GridPane();
-		root.setPrefSize(LARGEUR, HAUTEUR);
+		root.setPrefSize(LARGEUR+10, HAUTEUR+10);
 		Button btnExit = new Button("Exit");
-		root.add(btnExit, 1, 1);
+		root.add(btnExit, 0, LARGEUR);
+		
 		btnExit.setOnAction((event) -> {
 			e.exit(name);
 			changeScene(Ecran.ACCUEIL);
 		});
+		
 		addGameObject(objectif, objectif.getX() + root.getPrefWidth() / 2, objectif.getY() + root.getPrefHeight() / 2);
+		
 		Polygon p;
 		Vaisseau vaisseauAAjouter;
 		Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
+		
 		while (iterateur.hasNext()) {
 			Entry<String, Vaisseau> courant = iterateur.next();
+			
 			if (courant.getKey().equals(name)) {
 				p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 				p.setRotate(-90);
@@ -197,8 +211,8 @@ public class IHMclient extends Application {
 				player.setNode(p);
 				player.setLimits(root.getPrefWidth(), root.getPrefHeight());
 				player.setVelocity(new Point2D(0, 0));
-				addGameObject(player, courant.getValue().getPosX() + root.getPrefWidth() / 2,
-						courant.getValue().getPosY() + root.getPrefHeight() / 2);
+				addGameObject(player, courant.getValue().getPosX() + root.getPrefWidth() / 2, courant.getValue().getPosY() + root.getPrefHeight() / 2);
+				
 			} else {
 				p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 				p.setRotate(-90);
@@ -207,15 +221,9 @@ public class IHMclient extends Application {
 				vaisseauAAjouter.setNode(p);
 				vaisseauAAjouter.setLimits(root.getPrefWidth(), root.getPrefHeight());
 				vaisseauAAjouter.setVelocity(new Point2D(0, 0));
-				addGameObject(vaisseauAAjouter, courant.getValue().getPosX() + root.getPrefWidth() / 2,
-						courant.getValue().getPosY() + root.getPrefHeight() / 2);
+				addGameObject(vaisseauAAjouter, courant.getValue().getPosX() + root.getPrefWidth() / 2, courant.getValue().getPosY() + root.getPrefHeight() / 2);
 			}
 		}
-		// p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
-		// p.setRotate(-90);
-		// player = new Ship(p, root.getPrefWidth(), root.getPrefHeight());
-		// player.setVelocity(new Point2D(0, 0));
-		// addGameObject(player, 0, 0
 		AnimationTimer timer = new AnimationTimer() {
 			@Override
 			public void handle(long now) {

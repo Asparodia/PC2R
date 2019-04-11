@@ -8,22 +8,25 @@ import gameobjects.Vaisseau;
 import ihmexemple.Objectif;
 
 public class Reception extends Thread {
-	BufferedReader inChan = null;
-	String line = null;
+
+	BufferedReader inChan;
+	String line;
 	HashMap<String, Vaisseau> vehicules;
-	private String nomJoueur;
-	Object ihm;
+
+	Object listener;
 	Objectif objectif;
 
-	public Reception(BufferedReader b, HashMap<String, Vaisseau> vehicules, Object IHMCLINET, Objectif objectif) {
+	public Reception(BufferedReader b, HashMap<String, Vaisseau> vehicules,
+			Object list, Objectif objectif) {
 		inChan = b;
 		this.vehicules = vehicules;
-		ihm = IHMCLINET;
+		this.listener = list;
 		this.objectif = objectif;
 	}
 
 	@Override
 	public void run() {
+
 		while (true) {
 			try {
 				line = inChan.readLine();
@@ -35,51 +38,49 @@ public class Reception extends Thread {
 				break;
 			}
 			String[] separation = line.split("/");
-			if (separation[0].equals("TICK")) {
+			switch (separation[0]) {
+			case "WELCOME":
+				System.out.println("WELCOME a print sur ihm");
+				break;
+			case "SESSION":
+				String[] listeVehicules = separation[1].split("\\|");
+				for (String s : listeVehicules) {
+					String[] individu = s.split(":");
+					vehicules.put(individu[0], new Vaisseau(null, individu[0],
+							individu[1], individu[2]));
+				}
+				String[] objectifSplit = separation[2].substring(1,
+						separation[2].length() - 1).split("Y");
+				this.objectif.setX(new Double(objectifSplit[0]));
+				this.objectif.setY(new Double(objectifSplit[1]));
+				synchronized (listener) {
+					listener.notifyAll();
+				}
+				System.out.println("SESSION a print sur ihm");
+				break;
+			case "TICK":
 				if (separation.length > 1) {
 					String[] coordonnees = separation[1].split("\\|");
 					for (String s : coordonnees) {
 						String[] coordonnee = s.split(":");
-						// System.out.print(coordonnee[0]);
-						// System.out.print(coordonnee[1]);
 					}
 				}
-			}
-			if (separation[0].equals("WELCOME")) {
-				nomJoueur = line.split("/")[2].split(":")[0];
-				System.out.println(line);
-
-			} else if (separation[0].equals("SESSION")) {
-				String[] listeVehicules = separation[1].split("\\|");
-				for (String s : listeVehicules) {
-					String[] individu = s.split(":");
-					// System.out.println(individu[1]);
-					// System.out.println(individu[2]);
-					vehicules.put(individu[0], new Vaisseau(null, individu[0], individu[1], individu[2]));
-
-				}
-				String[] objectifSplit = separation[2].substring(1, separation[2].length() - 1).split("Y");
-				this.objectif.setX(new Double(objectifSplit[0]));
-				this.objectif.setY(new Double(objectifSplit[1]));
-				// System.out.println(this.objectif.getX());
-				// System.out.println(this.objectif.getY());
-				synchronized (ihm) {
-					ihm.notifyAll();
-				}
-			}if (separation[0].equals("NEWOBJ")) {
+				break;
+			case "NEWOBJ" :
 				String[] newObj = separation[1].split("Y");
 				String x1 = newObj[0].substring(1, newObj[0].length() - 1);
-				
 				objectif.setX(new Double(x1));
 				objectif.setY(new Double(newObj[1]));
 				objectif.majPos();
 				System.out.println("Newobjectif");
 				String[] scores = separation[2].split("\\|");
 				System.out.println(scores[0]);
+				break;
+			default:
+				System.out.println("CAS NON TRAITER");
+				break;
 			}
-			else {
-				// System.out.println("CAS NON TRAITE");
-			}
+
 		}
 	}
 

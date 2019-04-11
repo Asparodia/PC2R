@@ -29,7 +29,7 @@ public class Objectif extends GameObject {
 		y = y1;
 	}
 	public void majPos() {
-		this.view.setTranslateX(x);
+		this.view.setTranslateX(x); //a modif
 		this.view.setTranslateY(y);
 	}
 }

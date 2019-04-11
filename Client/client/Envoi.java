@@ -16,29 +16,6 @@ public class Envoi /* extends Thread */ {
 		this.vehicules = vehicules;
 	}
 
-	// @Override
-	// public void run() {
-	// String line = new String();
-	// char c;
-	// while (true) {
-	// line = "";
-	// try {
-	// while ((c = (char) System.in.read()) != '\n') {
-	// // client ecris
-	// line = line + c;
-	// }
-	// } catch (IOException e) {
-	// e.printStackTrace();
-	// }
-	// // envoie au serv
-	// outChan.print(line);
-	// outChan.flush();
-	// if (line.contains("EXIT/")) {
-	// break;
-	// }
-	// }
-	// }
-
 	public void connexion(String texte) {
 		String line = texte;
 		outChan.print("CONNECT/" + line);
@@ -59,6 +36,16 @@ public class Envoi /* extends Thread */ {
 	
 	public void exit(String name) {
 		outChan.print("EXIT/" + name);
+		outChan.flush();
+	}
+	
+	public void envoi(String msg) {
+		outChan.print("ENVOI/" + msg);
+		outChan.flush();
+	}
+	
+	public void envoiPrivee(String name,String msg) {
+		outChan.print("PENVOI/" +name+"/"+ msg);
 		outChan.flush();
 	}
 }
