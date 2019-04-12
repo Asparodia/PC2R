@@ -6,7 +6,7 @@ import threading
 import os
 import random
 import math
-
+# IL FAUT MIEUX PLACER LES MUTEX
 
 #windows : hostname sur terminal , mine is LAPTOP-IT1VP3Q2
 #############################" VARIABLES ##############################"
@@ -70,6 +70,10 @@ class Objectif():
         self.posX = random.uniform(-largeur, largeur)
         self.posY = random.uniform(-hauteur, hauteur)
         self.valeur = 1 # Pour différencier si jamais on met plusieurs types d'objets récupérables
+
+    def resetPos(self):
+        self.posX = random.uniform(-largeur, largeur)
+        self.posY = random.uniform(-hauteur, hauteur)       
         
 objectif = Objectif()
 ##########################################################################
@@ -79,7 +83,7 @@ class Timer(threading.Thread):
         threading.Thread.__init__(self)
         self.temps = temps
         self.zeroJoueur = threading.Event()
-        self.pasTimer = math.ceil(temps/10)
+        self.pasTimer = math.ceil(temps/10.0)
         self.decompte = 0
         
     def run(self):
@@ -87,6 +91,7 @@ class Timer(threading.Thread):
             print(">>>>>> Il reste "+str(self.temps-self.decompte)+" secondes")
             self.zeroJoueur.wait(timeout = self.pasTimer)
             self.decompte += self.pasTimer
+            print(self.pasTimer)
             
         global finTimer
         finTimer.set()
@@ -103,7 +108,7 @@ class Tickrate(threading.Thread):
             time.sleep(self.temps)
             server_refresh_tickrate.set()
 
-timer = Timer(0)
+timer = Timer(3.0)
 #############################################################################
 
 class Connexion(threading.Thread):
@@ -262,7 +267,7 @@ class Arena(threading.Thread):
                 mutexVehicules.acquire()
                 for (joueur, ship) in self.vehicules.items():
                     m += joueur + ":X" + str(ship.posX) + ":Y" + str(ship.posY) + "|"
-                    print(m) #Les coord sont bonnes ici
+                    print(m)
             finally:
                 mutexVehicules.release()
                 m = m[:-1]
@@ -281,7 +286,7 @@ class Arena(threading.Thread):
             finally:
                 mutexJoueurs.release()
                 del m
-            tick = Tickrate(5)
+            tick = Tickrate(0.0)
             tick.start()
             i = 0
             while not self.winner:
@@ -290,7 +295,7 @@ class Arena(threading.Thread):
                     break
                 self.computeCommands()
                 i += 1
-                print(i)
+               # print(i)
             if(self.winner):
                 try:
                     mutexVehicules.acquire()
@@ -351,7 +356,7 @@ class Arena(threading.Thread):
 
                         vehicule.posX = (vehicule.vX + vehicule.posX + largeur*2)%(2*largeur)
                         vehicule.posY = (vehicule.vY + vehicule.posY + hauteur*2)%(2*hauteur)
-
+                    
                         vehicule.posX -= largeur
                         vehicule.posY -= hauteur
                         #vehicule.xDebutNegatif = False # Cette variable n'est plus nécessaire après le premier appel ?
@@ -398,13 +403,16 @@ class Arena(threading.Thread):
 ##                        vehicule.posY -= hauteur
                         try:
                             mutexObjectif.acquire()
-                            if(distance(objectif.posX,objectif.posY,vehicule.posX,vehicule.posY)<50.0):
+                            #print("X"+str(objectif.posX))
+                            #print("Y"+str(objectif.posY))                            
+                            #print("objectif")
+                            if(distance(objectif.posX,objectif.posY,vehicule.posX,vehicule.posY)<30.0):
                                 vehicule.score +=objectif.valeur;
                                 if(vehicule.score >=self.maxScore):
                                     print("wiiiiiiiiiiiiiiiiiii") #winner
                                     self.winner = True
                                 else:
-                                    print("reset")
+                                    print("reset pos")
                                     objectif.resetPos()
                                     tmpx = "X"+str(objectif.posX)
                                     tmpy = "Y"+str(objectif.posY)
@@ -423,6 +431,7 @@ class Arena(threading.Thread):
                         #print("X:",vehicule.posX)
                         #print("Y:",vehicule.posY)
                     reponse += str(k)+":"+"X"+str(vehicule.posX)+"Y"+str(vehicule.posY)+"VX"+str(vehicule.vX)+"VY"+str(vehicule.vY)+"T"+str(vehicule.direction)+"|"
+                print(reponse)
                 newCommandes = dict()
                 reponse = reponse[:-1]
                 reponse += "\n"
@@ -432,7 +441,7 @@ class Arena(threading.Thread):
                         #print(reponse)
                         s.clientSock.send(reponse.encode())
                     if(len(newObj)>8):
-                        print("sending new obj")
+                        print(newObj)
                         for (joueur, s) in self.joueurs.items():
                             s.clientSock.send(newObj.encode())
                 finally:

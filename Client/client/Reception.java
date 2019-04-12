@@ -1,11 +1,11 @@
 package client;
 
+import gameobjects.Vaisseau;
+import ihmexemple.Objectif;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
-
-import gameobjects.Vaisseau;
-import ihmexemple.Objectif;
 
 public class Reception extends Thread {
 
@@ -63,11 +63,17 @@ public class Reception extends Thread {
 					String[] coordonnees = separation[1].split("\\|");
 					for (String s : coordonnees) {
 						String[] coordonnee = s.split(":");
+						Vaisseau courant = vehicules.get(coordonnee[0]);
+
+						String[] c = leVraiSplit(coordonnee[1]);
+						courant.MaJPos(new Double(c[0]), new Double(c[1]),
+								new Double(c[2]), new Double(c[3]), new Double(
+										c[4]));
 					}
-					System.out.println(line);
+					// System.out.println(line);
 				}
 				break;
-			case "NEWOBJ" :
+			case "NEWOBJ":
 				String[] newObj = separation[1].split("Y");
 				String x1 = newObj[0].substring(1, newObj[0].length() - 1);
 				objectif.setX(new Double(x1));
@@ -85,4 +91,19 @@ public class Reception extends Thread {
 		}
 	}
 
+	public String[] leVraiSplit(String chaine) {
+		String[] premier = chaine.split("VX");
+		String[] coordonnees = premier[0].substring(1, premier[0].length() - 1)
+				.split("Y");
+		String[] deuxieme = premier[1].split("VY");
+		String[] troisieme = deuxieme[1].split("T");
+
+		String x = coordonnees[0];
+		String y = coordonnees[1];
+		String vx = deuxieme[0];
+		String vy = troisieme[0];
+		String d = troisieme[1];
+		String[] res = { x, y, vx, vy, d };
+		return res;
+	}
 }

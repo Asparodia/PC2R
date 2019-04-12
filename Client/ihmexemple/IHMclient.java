@@ -35,13 +35,13 @@ public class IHMclient extends Application {
 
 	// INFO A CONFIG POUR SE CO
 	protected final static int PORT = 2019;
-	protected final static String HOST = "ppti";
+	protected final static String HOST = "ppti-14-503-02";
 
 	public final static int LARGEUR = 400;
 	public final static int HAUTEUR = 400;
 	private GridPane root;
 	Stage primaryStage;
-	private int refreshTickRate = 30;
+	private int refreshTickRate = 5;
 	int tick = 0;
 
 	private Objectif objectif;
@@ -165,9 +165,12 @@ public class IHMclient extends Application {
 	}
 
 	private void onUpdate() {
-		// System.out.println(player.getPosX());
-		// System.out.println(player.getPosY());
-		if (tick++ % refreshTickRate == 0) {
+		// System.out.println("JIUER : " + player.getPosX());
+		// System.out.println("JIUER : " + player.getPosY());
+		// System.out.println("OBJ " + objectif.getX());
+		// System.out.println("OBJ " + objectif.getY());
+		tick++;
+		if (tick % refreshTickRate == 0) {
 			double x = player.getPosX();
 			double y = player.getPosY();
 			double angle = player.getAngleAEnvoyer();
@@ -179,6 +182,18 @@ public class IHMclient extends Application {
 			} else {
 				System.out.println("NO ENTRA AQUI");
 			}
+			tick = 0;
+		}
+		Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet()
+				.iterator();
+		while (iterateur.hasNext()) {
+			Entry<String, Vaisseau> courant = iterateur.next();
+			if (courant.getKey() == player.getName()) {
+				continue;
+			}
+			Vaisseau v = courant.getValue();
+			v.update();
+			v.moveAutreJoueur();
 		}
 		player.update();
 	}

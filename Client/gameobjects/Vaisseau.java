@@ -72,7 +72,7 @@ public class Vaisseau extends GameObject {
 	}
 
 	public void move() {
-		thrustAEnvoyer = Math.min(thrustAEnvoyer + 1, CAPVITESSE);
+		thrustAEnvoyer = thrustAEnvoyer + 1;
 		double x = velocity.getX() + THRUST
 				* Math.cos(Math.toRadians(getRotate()));
 		double y = velocity.getY() + THRUST
@@ -102,6 +102,37 @@ public class Vaisseau extends GameObject {
 
 	public double getThrustAEnvoyer() {
 		return thrustAEnvoyer;
+	}
+
+	public void moveAutreJoueur() {
+		double x = velocity.getX();
+		double y = velocity.getY();
+		if (x > 0) {
+			if (y > 0) {
+				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.min(y,
+						CAPVITESSE)));
+			} else {
+				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.max(y,
+						-CAPVITESSE)));
+			}
+		} else {
+			if (y > 0) {
+				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.min(y,
+						CAPVITESSE)));
+			} else {
+				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.max(y,
+						-CAPVITESSE)));
+			}
+		}
+	}
+
+	public void MaJPos(double px, double py, double vx, double vy, double d) {
+		setPosX(px);
+		setPosY(py);
+		setvX(vx);
+		setvY(vy);
+		setDirection(d);
+
 	}
 
 	public void resetValeurs() {

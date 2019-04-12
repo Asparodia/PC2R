@@ -1,10 +1,11 @@
 package ihmexemple;
 
+import gameobjects.Vaisseau;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import gameobjects.Vaisseau;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Point2D;
