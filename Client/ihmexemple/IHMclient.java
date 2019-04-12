@@ -35,7 +35,7 @@ public class IHMclient extends Application {
 
 	// INFO A CONFIG POUR SE CO
 	protected final static int PORT = 2019;
-	protected final static String HOST = "ppti-14-503-14";
+	protected final static String HOST = "ppti";
 
 	public final static int LARGEUR = 400;
 	public final static int HAUTEUR = 400;
@@ -165,8 +165,8 @@ public class IHMclient extends Application {
 	}
 
 	private void onUpdate() {
-		System.out.println(player.getPosX());
-		System.out.println(player.getPosY());
+		// System.out.println(player.getPosX());
+		// System.out.println(player.getPosY());
 		if (tick++ % refreshTickRate == 0) {
 			double x = player.getPosX();
 			double y = player.getPosY();

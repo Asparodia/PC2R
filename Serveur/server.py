@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import time
 import socket
 import threading
@@ -44,10 +46,12 @@ class Ship():
         self.name = n
         self.posX = random.uniform(-largeur, largeur)
         self.posY = random.uniform(-hauteur, hauteur)
-        self.direction = float(math.pi/2)
+        self.direction = -float(math.pi/2)
         self.vX = 0.0
         self.vY = 0.0
         self.score = 0
+        #self.xDebutNegatif = self.posX < 0 # indique si posX est négatif à l'initialisation car pb avec les coordonnées négatives
+        #self.yDebutNegatif = self.posY < 0 # indique si posY est positif à l'initialisation car pb avec les coordonnées négatives
         
     def __repr__(self):
         s = self.name + ":X" +str(self.posX)+":Y"+str(self.posY)
@@ -95,10 +99,11 @@ class Tickrate(threading.Thread):
         
     def run(self):
         while not self.finDeSession.is_set():
+            server_refresh_tickrate.clear()
             time.sleep(self.temps)
             server_refresh_tickrate.set()
 
-timer = Timer(3)
+timer = Timer(0)
 #############################################################################
 
 class Connexion(threading.Thread):
@@ -200,8 +205,8 @@ class Connexion(threading.Thread):
                 c =reply[1][1:]
                 rc = c.split('Y')
                 del c
-                self.ship.posX = float(rc[0])%largeur #Bizarre ici aussi
-                self.ship.posY = float(rc[1])%hauteur
+                #self.ship.posX = float(rc[0])%largeur #Bizarre ici aussi
+                #self.ship.posY = float(rc[1])%hauteur # C'EST QUOI CE TRUC DE MERDE ?
                 del rc
                 m = "POSITION_SET\n"
                 self.clientSock.send(m.encode()) 
@@ -255,8 +260,9 @@ class Arena(threading.Thread):
             m = "SESSION/"
             try:
                 mutexVehicules.acquire()
-                for (joueur, ship) in vehicules.items():
+                for (joueur, ship) in self.vehicules.items():
                     m += joueur + ":X" + str(ship.posX) + ":Y" + str(ship.posY) + "|"
+                    print(m) #Les coord sont bonnes ici
             finally:
                 mutexVehicules.release()
                 m = m[:-1]
@@ -275,13 +281,16 @@ class Arena(threading.Thread):
             finally:
                 mutexJoueurs.release()
                 del m
-            tick = Tickrate(2)
+            tick = Tickrate(5)
             tick.start()
+            i = 0
             while not self.winner:
                 server_refresh_tickrate.wait()
                 if(len(joueurs)== 0):
                     break
                 self.computeCommands()
+                i += 1
+                print(i)
             if(self.winner):
                 try:
                     mutexVehicules.acquire()
@@ -312,14 +321,13 @@ class Arena(threading.Thread):
                 acceptingNewCommands = False                
                 for (k, v) in newCommandes.items():
                     try:
-                        vehicule = vehicules[k]
+                        vehicule = self.vehicules[k]
                     except Exception:
                         print(k," left")
                     for c in v:
                         a,t = c.split(":")
                         #FAIRE MIEUX LES CLACULS CAR CA NE MARCHE POINT
                         vehicule.direction += float(a)
-
                         vehicule.posX += largeur
                         vehicule.posY += hauteur
 
@@ -346,6 +354,8 @@ class Arena(threading.Thread):
 
                         vehicule.posX -= largeur
                         vehicule.posY -= hauteur
+                        #vehicule.xDebutNegatif = False # Cette variable n'est plus nécessaire après le premier appel ?
+                        #vehicule.yDebutNegatif = False # Cette variable n'est plus nécessaire après le premier appel ?
 ##
 ##                        #vitesseX = 0.0
 ##                        #vitesseY = 0.0
@@ -388,12 +398,13 @@ class Arena(threading.Thread):
 ##                        vehicule.posY -= hauteur
                         try:
                             mutexObjectif.acquire()
-                            if(distance(objectif.posX,objectif.posY,vehicule.posX,vehicule.posY)<20.0):
+                            if(distance(objectif.posX,objectif.posY,vehicule.posX,vehicule.posY)<50.0):
                                 vehicule.score +=objectif.valeur;
                                 if(vehicule.score >=self.maxScore):
                                     print("wiiiiiiiiiiiiiiiiiii") #winner
                                     self.winner = True
                                 else:
+                                    print("reset")
                                     objectif.resetPos()
                                     tmpx = "X"+str(objectif.posX)
                                     tmpy = "Y"+str(objectif.posY)
@@ -409,19 +420,23 @@ class Arena(threading.Thread):
                                     newObj += "\n"
                         finally:
                             mutexObjectif.release()
-                        print("X:",vehicule.posX)
-                        print("Y:",vehicule.posY)
+                        #print("X:",vehicule.posX)
+                        #print("Y:",vehicule.posY)
                     reponse += str(k)+":"+"X"+str(vehicule.posX)+"Y"+str(vehicule.posY)+"VX"+str(vehicule.vX)+"VY"+str(vehicule.vY)+"T"+str(vehicule.direction)+"|"
                 newCommandes = dict()
                 reponse = reponse[:-1]
                 reponse += "\n"
-                for (joueur, s) in self.joueurs.items():
-                    #print(reponse)
-                    s.clientSock.send(reponse.encode())
-                if(len(newObj)>8):
-                    print("sending new obj")
+                try:                
+                    mutexJoueurs.acquire()
                     for (joueur, s) in self.joueurs.items():
-                        s.clientSock.send(newObj.encode())
+                        #print(reponse)
+                        s.clientSock.send(reponse.encode())
+                    if(len(newObj)>8):
+                        print("sending new obj")
+                        for (joueur, s) in self.joueurs.items():
+                            s.clientSock.send(newObj.encode())
+                finally:
+                    mutexJoueurs.release()
         finally:
             acceptingNewCommands = True
             mutexNewCom.release()

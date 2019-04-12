@@ -64,6 +64,7 @@ public class Reception extends Thread {
 					for (String s : coordonnees) {
 						String[] coordonnee = s.split(":");
 					}
+					System.out.println(line);
 				}
 				break;
 			case "NEWOBJ" :
@@ -77,7 +78,7 @@ public class Reception extends Thread {
 				System.out.println(scores[0]);
 				break;
 			default:
-				System.out.println("CAS NON TRAITER");
+				System.out.println("CAS NON TRAITEE");
 				break;
 			}
 
