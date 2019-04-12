@@ -12,7 +12,7 @@ import math
 #############################" VARIABLES ##############################"
 H = os.uname()[1]
 print("hostname :",H)
-P = 2019
+P = 2018
 DATA = 1024
 
 hauteur = 200.0
@@ -286,7 +286,7 @@ class Arena(threading.Thread):
             finally:
                 mutexJoueurs.release()
                 del m
-            tick = Tickrate(0.0)
+            tick = Tickrate(0.5)
             tick.start()
             i = 0
             while not self.winner:
@@ -335,7 +335,7 @@ class Arena(threading.Thread):
                         vehicule.direction += float(a)
                         vehicule.posX += largeur
                         vehicule.posY += hauteur
-
+                        
                         nouvelleVitesseX = vehicule.vX + float(t)*math.cos(vehicule.direction)
                         nouvelleVitesseY = vehicule.vY + float(t)*math.sin(vehicule.direction)
 

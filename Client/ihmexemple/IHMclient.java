@@ -34,14 +34,14 @@ import javafx.stage.Stage;
 public class IHMclient extends Application {
 
 	// INFO A CONFIG POUR SE CO
-	protected final static int PORT = 2019;
-	protected final static String HOST = "ppti-14-503-02";
+	protected final static int PORT = 2018;
+	protected final static String HOST = "ppti-14-407-06";
 
 	public final static int LARGEUR = 400;
 	public final static int HAUTEUR = 400;
 	private GridPane root;
 	Stage primaryStage;
-	private int refreshTickRate = 5;
+	private int refreshTickRate = 3;
 	int tick = 0;
 
 	private Objectif objectif;
@@ -56,12 +56,10 @@ public class IHMclient extends Application {
 
 		Socket s = null;
 		try {
-
 			s = new Socket(HOST, PORT);
 			System.out.println("host : " + HOST + " port : " + PORT);
 
-			BufferedReader inChan = new BufferedReader(new InputStreamReader(
-					s.getInputStream()));
+			BufferedReader inChan = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			PrintStream outChan = new PrintStream(s.getOutputStream());
 
 			Circle cercle = new Circle(20);
@@ -177,23 +175,27 @@ public class IHMclient extends Application {
 			double thrust = player.getThrustAEnvoyer();
 			if (e != null) {
 				e.newCom(angle, thrust);
-				e.newPos(x, y);
+				// e.newPos(x, y);
 				player.resetValeurs();
 			} else {
 				System.out.println("NO ENTRA AQUI");
 			}
 			tick = 0;
 		}
-		Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet()
-				.iterator();
+		Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
 		while (iterateur.hasNext()) {
 			Entry<String, Vaisseau> courant = iterateur.next();
 			if (courant.getKey() == player.getName()) {
 				continue;
 			}
 			Vaisseau v = courant.getValue();
-			v.update();
+			System.out.println("AVANT X : " + v.getView().getTranslateX());
+			System.out.println("AVANT Y : " + v.getView().getTranslateY());
 			v.moveAutreJoueur();
+			v.update();
+			System.out.println("APRES X : " + v.getView().getTranslateX());
+			System.out.println("APRES Y : " + v.getView().getTranslateY());
+
 		}
 		player.update();
 	}
@@ -210,13 +212,11 @@ public class IHMclient extends Application {
 			changeScene(Ecran.ACCUEIL);
 		});
 
-		addGameObject(objectif, objectif.getX() + root.getPrefWidth() / 2,
-				objectif.getY() + root.getPrefHeight() / 2);
+		addGameObject(objectif, objectif.getX() + root.getPrefWidth() / 2, objectif.getY() + root.getPrefHeight() / 2);
 
 		Polygon p;
 		Vaisseau vaisseauAAjouter;
-		Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet()
-				.iterator();
+		Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
 
 		while (iterateur.hasNext()) {
 			Entry<String, Vaisseau> courant = iterateur.next();
@@ -229,8 +229,7 @@ public class IHMclient extends Application {
 				player.setNode(p);
 				player.setLimits(root.getPrefWidth(), root.getPrefHeight());
 				player.setVelocity(new Point2D(0, 0));
-				addGameObject(player,
-						courant.getValue().getPosX() + root.getPrefWidth() / 2,
+				addGameObject(player, courant.getValue().getPosX() + root.getPrefWidth() / 2,
 						courant.getValue().getPosY() + root.getPrefHeight() / 2);
 
 			} else {
@@ -239,12 +238,10 @@ public class IHMclient extends Application {
 				p.setFill(Color.RED);
 				vaisseauAAjouter = courant.getValue();
 				vaisseauAAjouter.setNode(p);
-				vaisseauAAjouter.setLimits(root.getPrefWidth(),
-						root.getPrefHeight());
+				vaisseauAAjouter.setLimits(root.getPrefWidth(), root.getPrefHeight());
 				vaisseauAAjouter.setVelocity(new Point2D(0, 0));
-				addGameObject(vaisseauAAjouter, courant.getValue().getPosX()
-						+ root.getPrefWidth() / 2, courant.getValue().getPosY()
-						+ root.getPrefHeight() / 2);
+				addGameObject(vaisseauAAjouter, courant.getValue().getPosX() + root.getPrefWidth() / 2,
+						courant.getValue().getPosY() + root.getPrefHeight() / 2);
 			}
 		}
 		AnimationTimer timer = new AnimationTimer() {

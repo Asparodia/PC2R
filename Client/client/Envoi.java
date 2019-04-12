@@ -24,7 +24,7 @@ public class Envoi /* extends Thread */ {
 
 	public void newCom(double angle, double thrust) {
 		String line = "A" + angle + "T" + thrust;
-		outChan.print("NEWCOM/" + line);
+		outChan.print("NEWCOM/" + line + "/");
 		outChan.flush();
 	}
 
