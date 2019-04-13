@@ -36,7 +36,7 @@ finTimer = threading.Event()
 
 server_refresh_tickrate = threading.Event()
 
-MAX_VITESSE = 6.0
+MAX_VITESSE = 3.0
 
 ##########################################################################
 def distance(x1,y1,x2,y2,rad):
