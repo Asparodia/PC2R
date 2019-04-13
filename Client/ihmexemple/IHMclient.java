@@ -8,6 +8,10 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import client.Envoi;
 import client.Reception;
 import gameobjects.Vaisseau;
@@ -34,23 +38,25 @@ import javafx.stage.Stage;
 public class IHMclient extends Application {
 
 	// INFO A CONFIG POUR SE CO
-	protected final static int PORT = 2018;
-	protected final static String HOST = "ppti-14-407-06";
+	protected final static int PORT = 20189;
+	protected final static String HOST = "ppti-14-502-15";
 
 	public final static int LARGEUR = 400;
 	public final static int HAUTEUR = 400;
 	private GridPane root;
 	Stage primaryStage;
-	private int refreshTickRate = 3;
+	// private int refreshTickRate = 3;
 	int tick = 0;
 
 	private Objectif objectif;
 	private Vaisseau player;
 	String name = "";
 	HashMap<String, Vaisseau> vehicules = new HashMap<>();
+	private static Timer timer = new Timer();
 
 	private Envoi e;
 	private Object listener = new Object();
+	private Random random = new Random();
 
 	public IHMclient() {
 
@@ -101,6 +107,12 @@ public class IHMclient extends Application {
 
 				}
 			});
+			timer.scheduleAtFixedRate(new TimerTask() {
+				@Override
+				public void run() {
+					rafraichir();
+				}
+			}, 500, 500);
 			break;
 
 		case ACCUEIL:
@@ -163,41 +175,94 @@ public class IHMclient extends Application {
 	}
 
 	private void onUpdate() {
+		// root.getChildren().clear();
+		// for (Vaisseau v :vehicules.values()) {
+		// addGameObject(v, v.getPosX() + root.getPrefWidth() / 2,
+		// v.getPosY() + root.getPrefHeight() / 2);
+		// }
 		// System.out.println("JIUER : " + player.getPosX());
 		// System.out.println("JIUER : " + player.getPosY());
 		// System.out.println("OBJ " + objectif.getX());
 		// System.out.println("OBJ " + objectif.getY());
-		tick++;
-		if (tick % refreshTickRate == 0) {
-			double x = player.getPosX();
-			double y = player.getPosY();
-			double angle = player.getAngleAEnvoyer();
-			double thrust = player.getThrustAEnvoyer();
-			if (e != null) {
-				e.newCom(angle, thrust);
-				// e.newPos(x, y);
-				player.resetValeurs();
-			} else {
-				System.out.println("NO ENTRA AQUI");
-			}
-			tick = 0;
-		}
-		Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
-		while (iterateur.hasNext()) {
-			Entry<String, Vaisseau> courant = iterateur.next();
-			if (courant.getKey() == player.getName()) {
-				continue;
-			}
-			Vaisseau v = courant.getValue();
-			System.out.println("AVANT X : " + v.getView().getTranslateX());
-			System.out.println("AVANT Y : " + v.getView().getTranslateY());
-			v.moveAutreJoueur();
-			v.update();
-			System.out.println("APRES X : " + v.getView().getTranslateX());
-			System.out.println("APRES Y : " + v.getView().getTranslateY());
+		// tick++;
+		// if (tick % refreshTickRate == 0) {
 
+		// tick = 0;
+		// }
+		// synchronized (nouveauVehicule) {
+		// if (nouveauVehicule) {
+		// synchronized (vehicules) {
+		// Iterator<Entry<String, Vaisseau>> iterateur =
+		// vehicules.entrySet().iterator();
+		// while (iterateur.hasNext()) {
+		// Vaisseau v = iterateur.next().getValue();
+		// if (!v.getDejaAjoute()) {
+		// Polygon p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
+		// p.setRotate(-90);
+		// p.setFill(Color.color(random.nextDouble(), random.nextDouble(),
+		// random.nextDouble()));
+		// v.setNode(p);
+		// v.setLimits(root.getPrefWidth(), root.getPrefHeight());
+		// v.setVelocity(new Point2D(0, 0));
+		// v.setDejaAjoute(true);
+		// addGameObject(v, v.getPosX() + root.getPrefWidth() / 2,
+		// v.getPosY() + root.getPrefHeight() / 2);
+		// }
+		// }
+		// }
+		// }
+		// nouveauVehicule = false;
+		// }
+		synchronized (vehicules) {
+			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
+			while (iterateur.hasNext()) {
+				Entry<String, Vaisseau> courant = iterateur.next();
+				if (courant.getKey() == player.getName()) {
+					Vaisseau v = courant.getValue();
+					v.update();
+				}
+				Vaisseau v = courant.getValue();
+				// System.out.println("AVANT X : " + v.getView().getTranslateX());
+				// System.out.println("AVANT Y : " + v.getView().getTranslateY());
+				if (!v.hasNode() && v.getPosX() != Double.MAX_VALUE) {
+					Polygon p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
+					p.setRotate(-90);
+					p.setFill(Color.color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
+					v = courant.getValue();
+					v.setNode(p);
+					v.setLimits(root.getPrefWidth(), root.getPrefHeight());
+					v.setVelocity(new Point2D(0, 0));
+					v.setDejaAjoute(true);
+					addGameObject(v, courant.getValue().getPosX() + root.getPrefWidth() / 2,
+							courant.getValue().getPosY() + root.getPrefHeight() / 2);
+				}
+				v.moveAutreJoueur();
+				v.update();
+				// System.out.println("APRES X : " + v.getView().getTranslateX());
+				// System.out.println("APRES Y : " + v.getView().getTranslateY());
+			}
 		}
-		player.update();
+
+		synchronized (objectif) {
+			if (!objectif.getAJour()) {
+				objectif.majPos(root.getPrefWidth() / 2, root.getPrefHeight() / 2);
+				objectif.setAJour(false);
+			}
+		}
+	}
+
+	public void rafraichir() {
+		// double x = player.getPosX();
+		// double y = player.getPosY();
+		double angle = player.getAngleAEnvoyer();
+		double thrust = player.getThrustAEnvoyer();
+		if (e != null) {
+			e.newCom(angle, thrust);
+			// e.newPos(x, y);
+			player.resetValeurs();
+		} else {
+			System.out.println("NO ENTRA AQUI");
+		}
 	}
 
 	private Parent createContent() {
@@ -211,37 +276,44 @@ public class IHMclient extends Application {
 			e.exit(name);
 			changeScene(Ecran.ACCUEIL);
 		});
-
-		addGameObject(objectif, objectif.getX() + root.getPrefWidth() / 2, objectif.getY() + root.getPrefHeight() / 2);
-
+		synchronized (objectif) {
+			addGameObject(objectif, objectif.getX() + root.getPrefWidth() / 2,
+					objectif.getY() + root.getPrefHeight() / 2);
+		}
 		Polygon p;
 		Vaisseau vaisseauAAjouter;
-		Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
+		synchronized (vehicules) {
+			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
 
-		while (iterateur.hasNext()) {
-			Entry<String, Vaisseau> courant = iterateur.next();
+			while (iterateur.hasNext()) {
+				Entry<String, Vaisseau> courant = iterateur.next();
 
-			if (courant.getKey().equals(name)) {
-				p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
-				p.setRotate(-90);
-				p.setFill(Color.BLUE);
-				player = courant.getValue();
-				player.setNode(p);
-				player.setLimits(root.getPrefWidth(), root.getPrefHeight());
-				player.setVelocity(new Point2D(0, 0));
-				addGameObject(player, courant.getValue().getPosX() + root.getPrefWidth() / 2,
-						courant.getValue().getPosY() + root.getPrefHeight() / 2);
+				if (courant.getKey().equals(name)) {
+					System.out.println("PLAYER : " + name);
+					p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
+					p.setRotate(-90);
+					p.setFill(Color.BLACK);
+					player = courant.getValue();
+					player.setNode(p);
+					player.setLimits(root.getPrefWidth(), root.getPrefHeight());
+					player.setVelocity(new Point2D(0, 0));
+					player.setDejaAjoute(true);
+					addGameObject(player, courant.getValue().getPosX() + root.getPrefWidth() / 2,
+							courant.getValue().getPosY() + root.getPrefHeight() / 2);
 
-			} else {
-				p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
-				p.setRotate(-90);
-				p.setFill(Color.RED);
-				vaisseauAAjouter = courant.getValue();
-				vaisseauAAjouter.setNode(p);
-				vaisseauAAjouter.setLimits(root.getPrefWidth(), root.getPrefHeight());
-				vaisseauAAjouter.setVelocity(new Point2D(0, 0));
-				addGameObject(vaisseauAAjouter, courant.getValue().getPosX() + root.getPrefWidth() / 2,
-						courant.getValue().getPosY() + root.getPrefHeight() / 2);
+				} else {
+					System.out.println("VAISSEAU : " + courant.getKey());
+					p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
+					p.setRotate(-90);
+					p.setFill(Color.color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
+					vaisseauAAjouter = courant.getValue();
+					vaisseauAAjouter.setNode(p);
+					vaisseauAAjouter.setLimits(root.getPrefWidth(), root.getPrefHeight());
+					vaisseauAAjouter.setVelocity(new Point2D(0, 0));
+					vaisseauAAjouter.setDejaAjoute(true);
+					addGameObject(vaisseauAAjouter, courant.getValue().getPosX() + root.getPrefWidth() / 2,
+							courant.getValue().getPosY() + root.getPrefHeight() / 2);
+				}
 			}
 		}
 		AnimationTimer timer = new AnimationTimer() {

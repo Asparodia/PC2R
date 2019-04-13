@@ -6,20 +6,24 @@ import threading
 import os
 import random
 import math
+
 # IL FAUT MIEUX PLACER LES MUTEX
 
 #windows : hostname sur terminal , mine is LAPTOP-IT1VP3Q2
+
 #############################" VARIABLES ##############################"
 H = os.uname()[1]
 print("hostname :",H)
-P = 2018
+P = 20189
 DATA = 1024
 
 hauteur = 200.0
 largeur = 200.0
 
-mutexJoueurs = threading.Lock()
-joueurs = dict()
+# =============================================================================
+# mutexJoueurs = threading.Lock()
+# joueurs = dict()
+# =============================================================================
 
 mutexVehicules = threading.Lock()
 vehicules = dict()
@@ -35,14 +39,14 @@ finTimer = threading.Event()
 
 server_refresh_tickrate = threading.Event()
 
-MAX_VITESSE = 5.0
+MAX_VITESSE = 6.0
 
 ##########################################################################
 def distance(x1,y1,x2,y2):
     return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
 
 class Ship():
-    def __init__(self, n):
+    def __init__(self, n, socjet):
         self.name = n
         self.posX = random.uniform(-largeur, largeur)
         self.posY = random.uniform(-hauteur, hauteur)
@@ -50,6 +54,7 @@ class Ship():
         self.vX = 0.0
         self.vY = 0.0
         self.score = 0
+        self.clientSock = socjet
         #self.xDebutNegatif = self.posX < 0 # indique si posX est négatif à l'initialisation car pb avec les coordonnées négatives
         #self.yDebutNegatif = self.posY < 0 # indique si posY est positif à l'initialisation car pb avec les coordonnées négatives
         
@@ -91,7 +96,6 @@ class Timer(threading.Thread):
             print(">>>>>> Il reste "+str(self.temps-self.decompte)+" secondes")
             self.zeroJoueur.wait(timeout = self.pasTimer)
             self.decompte += self.pasTimer
-            print(self.pasTimer)
             
         global finTimer
         finTimer.set()
@@ -117,94 +121,99 @@ class Connexion(threading.Thread):
         self.clientSock = sock
         self.addr = add
         self.name = ""
-        self.ship = None
         
     def run(self):
         global timer
         print ("Handling")
+        
         while True:
             request = self.clientSock.recv(DATA)
             reply = (request.decode()).split("/")
-            
             if (reply[0] == "CONNECT"):
-                if(reply[1] in joueurs):
-                    m = "DENIED\n"
-                    self.clientSock.send(m.encode())
-                    del m
-                    continue
-                # Le pseudo doit etre en lettres romaines minuscules
-                else: 
-                    try:
-                        mutexJoueurs.acquire()
-                        if(len(joueurs)==0):
+                try:
+                    mutexVehicules.acquire()
+                    
+                    if(reply[1] in vehicules):
+                        m = "DENIED\n"
+                        self.clientSock.send(m.encode())
+                        del m
+                        continue
+                    else: 
+                        sessionEnCours = False
+
+                        if(len(vehicules)==0):
                             # Lance le timer si c'est le premier joueur connecte
                             timer.start()
                         else:
                             # Previens les autres joueurs de sa connexion sinon
                             m = "NEWPLAYER/" + str(reply[1]) + "\n"
-                            for (pseudo, connexion) in joueurs.items():
-                                connexion.clientSock.send(m.encode())
-                        joueurs[reply[1]] = self
+                            for (pseudo, vaisseau) in vehicules.items():
+                                vaisseau.clientSock.send(m.encode())
+                        
+                        vehicules[reply[1]] = Ship(reply[1], self.clientSock)
+                        self.name = reply[1]  
+                        
                         m = "WELCOME/" 
                         if(timer.decompte < timer.temps):
                             m += "ATTENTE/"
                         else:
                             m += "JEU/"
-                    finally:
-                        mutexJoueurs.release()
-                        self.name = reply[1]
-                        v = Ship(reply[1])
-                        self.ship = v
-                    try:
-                        mutexVehicules.acquire()
-                        vehicules[reply[1]] = v
+                            sessionEnCours = True
+
                         for (nom, vehicule) in vehicules.items():
                             m+= nom + ":" + str(vehicule.score) +"|"
                         m = m[:-1]
                         m += "/"
-                    finally:
-                        mutexVehicules.release()
-                    try:
-                        mutexObjectif.acquire()
-                        m += "X" + str(objectif.posX)+"Y"+str(objectif.posY)
-                        m += "\n"
-                    finally:
-                        mutexObjectif.release()
-                        self.clientSock.send(m.encode())
-                        del m  
-            if (reply[0] == "EXIT"):
-                m = "PLAYERLEFT/"+ str(reply[1])+"\n"
-                self.clientSock.send(m.encode())
-                
-                try:
-                    mutexJoueurs.acquire()
-                    try:
-                        del joueurs[reply[1]]
-                        print(len(joueurs))
-                    except KeyError:
-                        print("this player is not in here")
 
-                    if(len(joueurs.keys())==0):
-                        timer.zeroJoueur.set()
-                        timer = Timer(3)
-                    else:
-                        for (pseudo, connexion) in joueurs.items():
-                            connexion.clientSock.send(m.encode())
-                finally:
-                    mutexJoueurs.release()  
-                try:
-                    mutexVehicules.acquire()
-                    try:
-                        del vehicules[reply[1]]
-                    except KeyError:
-                        print("this player doesn't have a vehicle")
-                    
+
+                        try:
+                            mutexObjectif.acquire()
+                            m += "X" + str(objectif.posX)+"Y"+str(objectif.posY)
+                            m += "\n"
+
+                            self.clientSock.send(m.encode())
+                            
+                            if(sessionEnCours):
+                                m = "SESSION/"
+
+
+                                for (joueur, ship) in vehicules.items():
+                                    m += joueur + ":X" + str(ship.posX) + ":Y" + str(ship.posY) + "|"
+
+                                m = m[:-1]
+                                m +="/"
+                                m += "X" + str(objectif.posX)+"Y"+str(objectif.posY)
+                                m += "\n"
+                                self.clientSock.send(m.encode())
+                        finally:
+                            mutexObjectif.release()
                 finally:
                     mutexVehicules.release()
-                    #del m
-                    #del request
-                    #del reply
-                    #break
+                
+                del m  
+                del sessionEnCours
+                
+            if (reply[0] == "EXIT"):
+                m = "PLAYERLEFT/"+ str(reply[1])+"\n"
+                try:
+                    mutexVehicules.acquire()
+                    if(len(vehicules)==1):
+                            timer.zeroJoueur.set()
+                            timer = Timer(3)
+                    
+                    for (pseudo, vaisseau) in vehicules.items():
+                        vaisseau.clientSock.send(m.encode())
+                    try:
+                        vehicules.pop(reply[1])
+                        mutexNewCom.acquire()
+                        newCommandes.pop(reply[1])
+                        
+                    except KeyError:
+                        print("this player is not in here")
+                finally:
+                    mutexNewCom.release()
+                    mutexVehicules.release()
+                    
                 
             if(reply[0] == "NEWPOS"):
                 c =reply[1][1:]
@@ -227,9 +236,10 @@ class Connexion(threading.Thread):
                     try:
                         mutexNewCom.acquire()
                         # IL FAUT FAIRE ATTENTCION ICI PARCE QUE LE BOOLEEN acceptingNewCommands
-                        if(self.name not in newCommandes):
-                            newCommandes[self.name] = list()
-                        newCommandes[self.name].append(com)
+                        if(self.name in vehicules):
+                            newCommandes[self.name]=com
+#                        if(self.name not in newCommandes):
+#                            newCommandes[self.name] = "" #list et append avant
                     finally:
                         mutexNewCom.release()
                         del a
@@ -250,9 +260,9 @@ class Connexion(threading.Thread):
 ###############################################################################
       
 class Arena(threading.Thread):
-    def __init__(self, players, vejhicles):
+    def __init__(self, vejhicles):
         threading.Thread.__init__(self)
-        self.joueurs = players
+#        self.joueurs = players
         self.vehicules = vejhicles
         self.maxScore = 5
         self.winner = False
@@ -267,9 +277,9 @@ class Arena(threading.Thread):
                 mutexVehicules.acquire()
                 for (joueur, ship) in self.vehicules.items():
                     m += joueur + ":X" + str(ship.posX) + ":Y" + str(ship.posY) + "|"
-                    print(m)
-            finally:
-                mutexVehicules.release()
+#                    print(m)
+#            finally:
+#                mutexVehicules.release()
                 m = m[:-1]
                 m +="/"
                 try:
@@ -279,19 +289,21 @@ class Arena(threading.Thread):
                 finally:
                     mutexObjectif.release()
                 m += "\n"
-            try:
-                mutexJoueurs.acquire()
-                for (joueur, chaussette) in joueurs.items():
-                    chaussette.clientSock.send(m.encode())
+                for (joueur, vaisseau) in vehicules.items():
+                    vaisseau.clientSock.send(m.encode())
+#            try:
+#                mutexJoueurs.acquire()
+#                for (joueur, chaussette) in joueurs.items():
+#                    chaussette.clientSock.send(m.encode())
             finally:
-                mutexJoueurs.release()
+                mutexVehicules.release()
                 del m
             tick = Tickrate(0.5)
             tick.start()
             i = 0
             while not self.winner:
                 server_refresh_tickrate.wait()
-                if(len(joueurs)== 0):
+                if(len(vehicules)== 0):
                     break
                 self.computeCommands()
                 i += 1
@@ -304,7 +316,7 @@ class Arena(threading.Thread):
                         w += joueur + ":" + str(ship.score)+"|"
                     w = w[:-1]
                     w += "\n"
-                    for (joueur, s) in self.joueurs.items():
+                    for (joueur, s) in self.vehicules.items():
                             s.clientSock.send(w.encode())
                 finally:
                     mutexVehicules.release()
@@ -321,6 +333,7 @@ class Arena(threading.Thread):
         reponse = "TICK/"
         newObj = "NEWOBJ/"
         try:
+            mutexVehicules.acquire()
             mutexNewCom.acquire()
             if(len(newCommandes) > 0):
                 acceptingNewCommands = False                
@@ -329,38 +342,40 @@ class Arena(threading.Thread):
                         vehicule = self.vehicules[k]
                     except Exception:
                         print(k," left")
-                    for c in v:
-                        a,t = c.split(":")
-                        #FAIRE MIEUX LES CLACULS CAR CA NE MARCHE POINT
-                        vehicule.direction += float(a)
-                        vehicule.posX += largeur
-                        vehicule.posY += hauteur
-                        
-                        nouvelleVitesseX = vehicule.vX + float(t)*math.cos(vehicule.direction)
-                        nouvelleVitesseY = vehicule.vY + float(t)*math.sin(vehicule.direction)
+                        continue
+#                    for c in v:
 
-                        if(nouvelleVitesseX > 0):
-                            if(nouvelleVitesseY > 0):
-                                vehicule.vX = min(nouvelleVitesseX, MAX_VITESSE)
-                                vehicule.vY = min(nouvelleVitesseY, MAX_VITESSE)
-                            else:
-                                vehicule.vX = min(nouvelleVitesseX, MAX_VITESSE)
-                                vehicule.vY = max(nouvelleVitesseY, -MAX_VITESSE)
-                        else:
-                            if(nouvelleVitesseY > 0):
-                                vehicule.vX = max(nouvelleVitesseX, -MAX_VITESSE)
-                                vehicule.vY = min(nouvelleVitesseY, MAX_VITESSE)
-                            else:
-                                vehicule.vX = max(nouvelleVitesseX, -MAX_VITESSE)
-                                vehicule.vY = max(nouvelleVitesseY, -MAX_VITESSE)
-
-                        vehicule.posX = (vehicule.vX + vehicule.posX + largeur*2)%(2*largeur)
-                        vehicule.posY = (vehicule.vY + vehicule.posY + hauteur*2)%(2*hauteur)
+                    a,t = v.split(":")
+                    #FAIRE MIEUX LES CLACULS CAR CA NE MARCHE POINT
+                    vehicule.direction += float(a)
+                    vehicule.posX += largeur
+                    vehicule.posY += hauteur
                     
-                        vehicule.posX -= largeur
-                        vehicule.posY -= hauteur
-                        #vehicule.xDebutNegatif = False # Cette variable n'est plus nécessaire après le premier appel ?
-                        #vehicule.yDebutNegatif = False # Cette variable n'est plus nécessaire après le premier appel ?
+                    nouvelleVitesseX = vehicule.vX + float(t)*math.cos(vehicule.direction)
+                    nouvelleVitesseY = vehicule.vY + float(t)*math.sin(vehicule.direction)
+
+                    if(nouvelleVitesseX > 0):
+                        if(nouvelleVitesseY > 0):
+                            vehicule.vX = min(nouvelleVitesseX, MAX_VITESSE)
+                            vehicule.vY = min(nouvelleVitesseY, MAX_VITESSE)
+                        else:
+                            vehicule.vX = min(nouvelleVitesseX, MAX_VITESSE)
+                            vehicule.vY = max(nouvelleVitesseY, -MAX_VITESSE)
+                    else:
+                        if(nouvelleVitesseY > 0):
+                            vehicule.vX = max(nouvelleVitesseX, -MAX_VITESSE)
+                            vehicule.vY = min(nouvelleVitesseY, MAX_VITESSE)
+                        else:
+                            vehicule.vX = max(nouvelleVitesseX, -MAX_VITESSE)
+                            vehicule.vY = max(nouvelleVitesseY, -MAX_VITESSE)
+
+                    vehicule.posX = (vehicule.vX + vehicule.posX + largeur*2)%(2*largeur)
+                    vehicule.posY = (vehicule.vY + vehicule.posY + hauteur*2)%(2*hauteur)
+                
+                    vehicule.posX -= largeur
+                    vehicule.posY -= hauteur
+                    #vehicule.xDebutNegatif = False # Cette variable n'est plus nécessaire après le premier appel ?
+                    #vehicule.yDebutNegatif = False # Cette variable n'est plus nécessaire après le premier appel ?
 ##
 ##                        #vitesseX = 0.0
 ##                        #vitesseY = 0.0
@@ -401,54 +416,53 @@ class Arena(threading.Thread):
 ####                                vehicule.posY += hauteur
 ##                        vehicule.posX -= largeur
 ##                        vehicule.posY -= hauteur
-                        try:
-                            mutexObjectif.acquire()
-                            #print("X"+str(objectif.posX))
-                            #print("Y"+str(objectif.posY))                            
-                            #print("objectif")
-                            if(distance(objectif.posX,objectif.posY,vehicule.posX,vehicule.posY)<30.0):
-                                vehicule.score +=objectif.valeur;
-                                if(vehicule.score >=self.maxScore):
-                                    print("wiiiiiiiiiiiiiiiiiii") #winner
-                                    self.winner = True
-                                else:
-                                    print("reset pos")
-                                    objectif.resetPos()
-                                    tmpx = "X"+str(objectif.posX)
-                                    tmpy = "Y"+str(objectif.posY)
-                                    newObj+=tmpx+tmpy+"/"
-                                    try:
-                                        mutexVehicules.acquire()
-                                        for (nom, vehicule) in vehicules.items():
-                                            newObj+= nom + ":" + str(vehicule.score) +"|"
-                                    finally:
-                                        mutexVehicules.release()
-                                    newObj = newObj[:-1]
-                                    newObj += "/"
-                                    newObj += "\n"
-                        finally:
-                            mutexObjectif.release()
-                        #print("X:",vehicule.posX)
-                        #print("Y:",vehicule.posY)
+                    try:
+                        mutexObjectif.acquire()
+#                        print("X"+str(objectif.posX))
+#                        print("Y"+str(objectif.posY))                            
+                        #print("objectif")
+                        if((objectif.posX + largeur - vehicule.posX + largeur) < 20.0 and (objectif.posY + hauteur - vehicule.posY + hauteur) < 20.0):
+                            vehicule.score +=objectif.valeur;
+                            if(vehicule.score >=self.maxScore):
+                                print("wiiiiiiiiiiiiiiiiiii") #winner
+                                self.winner = True
+                            else:
+                                print("reset pos")
+                                objectif.resetPos()
+                                tmpx = "X"+str(objectif.posX)
+                                tmpy = "Y"+str(objectif.posY)
+                                newObj+=tmpx+tmpy+"/"
+                                try:
+                                    mutexVehicules.acquire()
+                                    for (nom, vehicule) in vehicules.items():
+                                        newObj+= nom + ":" + str(vehicule.score) +"|"
+                                finally:
+                                    mutexVehicules.release()
+                                newObj = newObj[:-1]
+                                newObj += "/"
+                                newObj += "\n"
+                        else:
+                            print(objectif.posX + largeur - vehicule.posX + largeur)
+                            print(objectif.posY + hauteur - vehicule.posY + hauteur)
+                    finally:
+                        mutexObjectif.release()
+
                     reponse += str(k)+":"+"X"+str(vehicule.posX)+"Y"+str(vehicule.posY)+"VX"+str(vehicule.vX)+"VY"+str(vehicule.vY)+"T"+str(vehicule.direction)+"|"
-                print(reponse)
+#                print(reponse)
                 newCommandes = dict()
                 reponse = reponse[:-1]
                 reponse += "\n"
-                try:                
-                    mutexJoueurs.acquire()
-                    for (joueur, s) in self.joueurs.items():
-                        #print(reponse)
-                        s.clientSock.send(reponse.encode())
-                    if(len(newObj)>8):
-                        print(newObj)
-                        for (joueur, s) in self.joueurs.items():
-                            s.clientSock.send(newObj.encode())
-                finally:
-                    mutexJoueurs.release()
+                for (joueur, s) in self.vehicules.items():
+                    #print(reponse)
+                    s.clientSock.send(reponse.encode())
+                if(len(newObj)>8):
+                    print(newObj)
+                    for (joueur, s) in self.vehicules.items():
+                        s.clientSock.send(newObj.encode())
         finally:
             acceptingNewCommands = True
             mutexNewCom.release()
+            mutexVehicules.release()
             
 ###############################################################################
 class Server:
@@ -462,9 +476,7 @@ class Server:
         self.sockServ.listen(10)
         
         print("------- Server ready --------\n")
-
-        
-        Arena(joueurs, vehicules).start() 
+        Arena(vehicules).start() 
         while True:
             clientSock, addr = self.sockServ.accept()
             print("------- Client connected ------\n")

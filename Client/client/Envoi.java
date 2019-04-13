@@ -18,7 +18,7 @@ public class Envoi /* extends Thread */ {
 
 	public void connexion(String texte) {
 		String line = texte;
-		outChan.print("CONNECT/" + line);
+		outChan.print("CONNECT/" + line+ "/");
 		outChan.flush();
 	}
 
@@ -30,22 +30,22 @@ public class Envoi /* extends Thread */ {
 
 	public void newPos(double x, double y) {
 		String line = "X" + x + "Y" + y;
-		outChan.print("NEWPOS/" + line );
+		outChan.print("NEWPOS/" + line+ "/" );
 		outChan.flush();
 	}
 	
 	public void exit(String name) {
-		outChan.print("EXIT/" + name);
+		outChan.print("EXIT/" + name+ "/");
 		outChan.flush();
 	}
 	
 	public void envoi(String msg) {
-		outChan.print("ENVOI/" + msg);
+		outChan.print("ENVOI/" + msg+ "/");
 		outChan.flush();
 	}
 	
 	public void envoiPrivee(String name,String msg) {
-		outChan.print("PENVOI/" +name+"/"+ msg);
+		outChan.print("PENVOI/" +name+"/"+ msg+ "/");
 		outChan.flush();
 	}
 }

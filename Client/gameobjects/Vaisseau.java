@@ -13,11 +13,12 @@ public class Vaisseau extends GameObject {
 	private double vX;
 	private double vY;
 	private int score;
+	private boolean dejaAjoute = false;
 
 	private double maxWidth;
 	private double maxHeight;
 
-	private final static double CAPVITESSE = 5.0;
+	private final static double CAPVITESSE = 3.0;
 	private final static double THRUST = 1;
 	private final static double CLOCK = 6.0;
 	private final static double ANTICLOCK = -6.0;
@@ -49,14 +50,16 @@ public class Vaisseau extends GameObject {
 	@Override
 	public void update() {
 		// if (boom) {
-		posX += maxWidth / 2;
-		posX = (velocity.getX() + posX + maxWidth) % (maxWidth);
-		posX -= maxWidth / 2;
-		posY += maxHeight / 2;
-		posY = (velocity.getY() + posY + maxHeight) % (maxHeight);
-		posY -= maxHeight / 2;
-		view.setTranslateX((view.getTranslateX() + velocity.getX() + maxWidth) % maxWidth);
-		view.setTranslateY((view.getTranslateY() + velocity.getY() + maxHeight) % maxHeight);
+		if (view != null) {
+			posX += maxWidth / 2;
+			posX = (velocity.getX() + posX + maxWidth) % (maxWidth);
+			posX -= maxWidth / 2;
+			posY += maxHeight / 2;
+			posY = (velocity.getY() + posY + maxHeight) % (maxHeight);
+			posY -= maxHeight / 2;
+			view.setTranslateX((view.getTranslateX() + velocity.getX() + maxWidth) % maxWidth);
+			view.setTranslateY((view.getTranslateY() + velocity.getY() + maxHeight) % maxHeight);
+		}
 	}
 
 	public void rotateRight() {
@@ -197,5 +200,17 @@ public class Vaisseau extends GameObject {
 	public void setLimits(double maxWidth, double maxHeight) {
 		this.maxWidth = maxWidth;
 		this.maxHeight = maxHeight;
+	}
+
+	public boolean getDejaAjoute() {
+		return dejaAjoute;
+	}
+
+	public void setDejaAjoute(boolean etet) {
+		this.dejaAjoute = etet;
+	}
+
+	public boolean hasNode() {
+		return view != null;
 	}
 }

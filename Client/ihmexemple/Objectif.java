@@ -6,6 +6,7 @@ public class Objectif extends GameObject {
 
 	private double x;
 	private double y;
+	private boolean aJour = true;
 
 	public Objectif(Node view, double x, double y) {
 		super(view);
@@ -28,8 +29,17 @@ public class Objectif extends GameObject {
 	public void setY(double y1) {
 		y = y1;
 	}
-	public void majPos() {
-		this.view.setTranslateX(x); //a modif
-		this.view.setTranslateY(y);
+
+	public void majPos(double limiteX, double limiteY) {
+		this.view.setTranslateX(x + limiteX); // a modif
+		this.view.setTranslateY(y + limiteY);
+	}
+
+	public boolean getAJour() {
+		return aJour;
+	}
+
+	public boolean setAJour(boolean etat) {
+		return aJour = etat;
 	}
 }
