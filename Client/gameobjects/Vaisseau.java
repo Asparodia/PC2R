@@ -5,6 +5,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.Node;
 
 public class Vaisseau extends GameObject {
+
 	private String name;
 	private double posX;
 	private double posY;
@@ -13,6 +14,7 @@ public class Vaisseau extends GameObject {
 	private double vY;
 	private int score;
 	private boolean dejaAjoute = false;
+	private boolean aEnlever = false;
 
 	private double maxWidth;
 	private double maxHeight;
@@ -48,6 +50,7 @@ public class Vaisseau extends GameObject {
 
 	@Override
 	public void update() {
+		// if (boom) {
 		if (view != null) {
 			posX += maxWidth / 2;
 			posX = (velocity.getX() + posX + maxWidth) % (maxWidth);
@@ -55,8 +58,10 @@ public class Vaisseau extends GameObject {
 			posY += maxHeight / 2;
 			posY = (velocity.getY() + posY + maxHeight) % (maxHeight);
 			posY -= maxHeight / 2;
-			view.setTranslateX((view.getTranslateX() + velocity.getX() + maxWidth) % maxWidth);
-			view.setTranslateY((view.getTranslateY() + velocity.getY() + maxHeight) % maxHeight);
+			view.setTranslateX((view.getTranslateX() + velocity.getX() + maxWidth)
+					% maxWidth);
+			view.setTranslateY((view.getTranslateY() + velocity.getY() + maxHeight)
+					% maxHeight);
 		}
 	}
 
@@ -72,19 +77,25 @@ public class Vaisseau extends GameObject {
 
 	public void move() {
 		thrustAEnvoyer = thrustAEnvoyer + 1;
-		double x = velocity.getX() + THRUST * Math.cos(Math.toRadians(getRotate()));
-		double y = velocity.getY() + THRUST * Math.sin(Math.toRadians(getRotate()));
+		double x = velocity.getX() + THRUST
+				* Math.cos(Math.toRadians(getRotate()));
+		double y = velocity.getY() + THRUST
+				* Math.sin(Math.toRadians(getRotate()));
 		if (x > 0) {
 			if (y > 0) {
-				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.min(y, CAPVITESSE)));
+				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.min(y,
+						CAPVITESSE)));
 			} else {
-				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.max(y, -CAPVITESSE)));
+				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.max(y,
+						-CAPVITESSE)));
 			}
 		} else {
 			if (y > 0) {
-				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.min(y, CAPVITESSE)));
+				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.min(y,
+						CAPVITESSE)));
 			} else {
-				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.max(y, -CAPVITESSE)));
+				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.max(y,
+						-CAPVITESSE)));
 			}
 		}
 	}
@@ -102,15 +113,19 @@ public class Vaisseau extends GameObject {
 		double y = vY;
 		if (x > 0) {
 			if (y > 0) {
-				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.min(y, CAPVITESSE)));
+				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.min(y,
+						CAPVITESSE)));
 			} else {
-				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.max(y, -CAPVITESSE)));
+				setVelocity(new Point2D(Math.min(x, CAPVITESSE), Math.max(y,
+						-CAPVITESSE)));
 			}
 		} else {
 			if (y > 0) {
-				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.min(y, CAPVITESSE)));
+				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.min(y,
+						CAPVITESSE)));
 			} else {
-				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.max(y, -CAPVITESSE)));
+				setVelocity(new Point2D(Math.max(x, -CAPVITESSE), Math.max(y,
+						-CAPVITESSE)));
 			}
 		}
 	}
@@ -191,8 +206,9 @@ public class Vaisseau extends GameObject {
 
 	@Override
 	public String toString() {
-		return "Nom = " + name + "/" + " PosX : " + posX + "/PosY : " + posY + "/Direction : " + direction + "/vX : "
-				+ vX + "/vY : " + vY + "/Score : " + score;
+		return "Nom = " + name + "/" + " PosX : " + posX + "/PosY : " + posY
+				+ "/Direction : " + direction + "/vX : " + vX + "/vY : " + vY
+				+ "/Score : " + score;
 	}
 
 	public void setLimits(double maxWidth, double maxHeight) {
@@ -206,6 +222,14 @@ public class Vaisseau extends GameObject {
 
 	public void setDejaAjoute(boolean etet) {
 		this.dejaAjoute = etet;
+	}
+
+	public boolean getAEnlever() {
+		return aEnlever;
+	}
+
+	public void setAEnlever(boolean etat) {
+		this.aEnlever = etat;
 	}
 
 	public boolean hasNode() {

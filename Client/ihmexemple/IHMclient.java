@@ -39,12 +39,13 @@ public class IHMclient extends Application {
 
 	// INFO A CONFIG POUR SE CO
 	protected final static int PORT = 20189;
-	protected final static String HOST = "ppti-14-502-15";
+	protected final static String HOST = "ppti";
 
 	public final static int LARGEUR = 400;
 	public final static int HAUTEUR = 400;
 	private GridPane root;
 	Stage primaryStage;
+	// private int refreshTickRate = 3;
 	int tick = 0;
 
 	private Objectif objectif;
@@ -64,7 +65,8 @@ public class IHMclient extends Application {
 			s = new Socket(HOST, PORT);
 			System.out.println("host : " + HOST + " port : " + PORT);
 
-			BufferedReader inChan = new BufferedReader(new InputStreamReader(s.getInputStream()));
+			BufferedReader inChan = new BufferedReader(new InputStreamReader(
+					s.getInputStream()));
 			PrintStream outChan = new PrintStream(s.getOutputStream());
 
 			Circle cercle = new Circle(20);
@@ -118,15 +120,18 @@ public class IHMclient extends Application {
 
 			BorderPane bp = new BorderPane();
 			bp.setPadding(new Insets(10, 50, 50, 50));
+			// Adding HBox
 
 			HBox hb = new HBox();
 			hb.setPadding(new Insets(20, 20, 20, 30));
 
+			// Adding GridPane
 			GridPane gridPane = new GridPane();
 			gridPane.setPadding(new Insets(20, 20, 20, 20));
 			gridPane.setHgap(5);
 			gridPane.setVgap(5);
 
+			// Implementing Nodes for GridPane
 			Label lblUserName = new Label("Username");
 			TextField txtUserName = new TextField();
 			Button btnLogin = new Button("Login");
@@ -210,7 +215,8 @@ public class IHMclient extends Application {
 		// nouveauVehicule = false;
 		// }
 		synchronized (vehicules) {
-			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
+			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet()
+					.iterator();
 			while (iterateur.hasNext()) {
 				Entry<String, Vaisseau> courant = iterateur.next();
 				if (courant.getKey() == player.getName()) {
@@ -218,36 +224,50 @@ public class IHMclient extends Application {
 					v.update();
 				}
 				Vaisseau v = courant.getValue();
-				// System.out.println("AVANT X : " + v.getView().getTranslateX());
-				// System.out.println("AVANT Y : " + v.getView().getTranslateY());
+				// System.out.println("AVANT X : " +
+				// v.getView().getTranslateX());
+				// System.out.println("AVANT Y : " +
+				// v.getView().getTranslateY());
 				if (!v.hasNode() && v.getPosX() != Double.MAX_VALUE) {
 					Polygon p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 					p.setRotate(-90);
-					p.setFill(Color.color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
+					p.setFill(Color.color(random.nextDouble(),
+							random.nextDouble(), random.nextDouble()));
 					v = courant.getValue();
 					v.setNode(p);
 					v.setLimits(root.getPrefWidth(), root.getPrefHeight());
 					v.setVelocity(new Point2D(0, 0));
 					v.setDejaAjoute(true);
-					addGameObject(v, courant.getValue().getPosX() + root.getPrefWidth() / 2,
-							courant.getValue().getPosY() + root.getPrefHeight() / 2);
+					addGameObject(v,
+							courant.getValue().getPosX() + root.getPrefWidth()
+									/ 2,
+							courant.getValue().getPosY() + root.getPrefHeight()
+									/ 2);
+				} else if (v.getAEnlever()) {
+					root.getChildren().remove(v.getView());
+					vehicules.remove(v);
 				}
 				v.moveAutreJoueur();
 				v.update();
-				// System.out.println("APRES X : " + v.getView().getTranslateX());
-				// System.out.println("APRES Y : " + v.getView().getTranslateY());
+				// System.out.println("APRES X : " +
+				// v.getView().getTranslateX());
+				// System.out.println("APRES Y : " +
+				// v.getView().getTranslateY());
 			}
 		}
 
 		synchronized (objectif) {
 			if (!objectif.getAJour()) {
-				objectif.majPos(root.getPrefWidth() / 2, root.getPrefHeight() / 2);
-				objectif.setAJour(true);
+				objectif.majPos(root.getPrefWidth() / 2,
+						root.getPrefHeight() / 2);
+				objectif.setAJour(false);
 			}
 		}
 	}
 
 	public void rafraichir() {
+		// double x = player.getPosX();
+		// double y = player.getPosY();
 		double angle = player.getAngleAEnvoyer();
 		double thrust = player.getThrustAEnvoyer();
 		if (e != null) {
@@ -277,7 +297,8 @@ public class IHMclient extends Application {
 		Polygon p;
 		Vaisseau vaisseauAAjouter;
 		synchronized (vehicules) {
-			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
+			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet()
+					.iterator();
 
 			while (iterateur.hasNext()) {
 				Entry<String, Vaisseau> courant = iterateur.next();
@@ -292,21 +313,27 @@ public class IHMclient extends Application {
 					player.setLimits(root.getPrefWidth(), root.getPrefHeight());
 					player.setVelocity(new Point2D(0, 0));
 					player.setDejaAjoute(true);
-					addGameObject(player, courant.getValue().getPosX() + root.getPrefWidth() / 2,
-							courant.getValue().getPosY() + root.getPrefHeight() / 2);
+					addGameObject(player,
+							courant.getValue().getPosX() + root.getPrefWidth()
+									/ 2,
+							courant.getValue().getPosY() + root.getPrefHeight()
+									/ 2);
 
 				} else {
 					System.out.println("VAISSEAU : " + courant.getKey());
 					p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 					p.setRotate(-90);
-					p.setFill(Color.color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
+					p.setFill(Color.color(random.nextDouble(),
+							random.nextDouble(), random.nextDouble()));
 					vaisseauAAjouter = courant.getValue();
 					vaisseauAAjouter.setNode(p);
-					vaisseauAAjouter.setLimits(root.getPrefWidth(), root.getPrefHeight());
+					vaisseauAAjouter.setLimits(root.getPrefWidth(),
+							root.getPrefHeight());
 					vaisseauAAjouter.setVelocity(new Point2D(0, 0));
 					vaisseauAAjouter.setDejaAjoute(true);
-					addGameObject(vaisseauAAjouter, courant.getValue().getPosX() + root.getPrefWidth() / 2,
-							courant.getValue().getPosY() + root.getPrefHeight() / 2);
+					addGameObject(vaisseauAAjouter, courant.getValue()
+							.getPosX() + root.getPrefWidth() / 2, courant
+							.getValue().getPosY() + root.getPrefHeight() / 2);
 				}
 			}
 		}

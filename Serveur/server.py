@@ -12,8 +12,8 @@ import math
 #windows : hostname sur terminal , mine is LAPTOP-IT1VP3Q2
 
 #############################" VARIABLES ##############################"
-#H = os.uname()[1]
-H = "LAPTOP-IT1VP3Q2"
+H = os.uname()[1]
+
 print("hostname :",H)
 P = 2018
 DATA = 1024
@@ -288,7 +288,7 @@ class Arena(threading.Thread):
             finally:
                 mutexVehicules.release()
                 del m
-            tick = Tickrate(0.5)
+            tick = Tickrate(0.2)
             tick.start()
             i = 0
             while not self.winner:
@@ -366,7 +366,7 @@ class Arena(threading.Thread):
 #                        print("X"+str(objectif.posX))
 #                        print("Y"+str(objectif.posY))                            
                         #print("objectif")
-                        if(distance(objectif.posX, objectif.posY,vehicule.posX,vehicule.posY,100.0) ):
+                        if(distance(objectif.posX, objectif.posY,vehicule.posX,vehicule.posY,20.0) ):
                             vehicule.score +=objectif.valeur;
                             if(vehicule.score >=self.maxScore):
                                 print("wiiiiiiiiiiiiiiiiiii") #winner
@@ -377,12 +377,8 @@ class Arena(threading.Thread):
                                 tmpx = "X"+str(objectif.posX)
                                 tmpy = "Y"+str(objectif.posY)
                                 newObj+=tmpx+tmpy+"/"
-                                try:
-                                    mutexVehicules.acquire()
-                                    for (nom, vehicule) in vehicules.items():
-                                        newObj+= nom + ":" + str(vehicule.score) +"|"
-                                finally:
-                                    mutexVehicules.release()
+                                for (nom, vehicule) in vehicules.items():
+                                    newObj+= nom + ":" + str(vehicule.score) +"|"
                                 newObj = newObj[:-1]
                                 newObj += "/"
                                 newObj += "\n"
