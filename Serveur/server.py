@@ -12,18 +12,15 @@ import math
 #windows : hostname sur terminal , mine is LAPTOP-IT1VP3Q2
 
 #############################" VARIABLES ##############################"
-H = os.uname()[1]
+#H = os.uname()[1]
+H = "LAPTOP-IT1VP3Q2"
 print("hostname :",H)
-P = 20189
+P = 2018
 DATA = 1024
 
 hauteur = 200.0
 largeur = 200.0
 
-# =============================================================================
-# mutexJoueurs = threading.Lock()
-# joueurs = dict()
-# =============================================================================
 
 mutexVehicules = threading.Lock()
 vehicules = dict()
@@ -42,8 +39,11 @@ server_refresh_tickrate = threading.Event()
 MAX_VITESSE = 6.0
 
 ##########################################################################
-def distance(x1,y1,x2,y2):
-    return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
+def distance(x1,y1,x2,y2,rad):
+    if (x2 >= x1 - rad ) and (x2 <= x1 + rad ):
+        if (y2 >= y1 - rad ) and (y2 <= y1 + rad ):
+            return True
+    return False
 
 class Ship():
     def __init__(self, n, socjet):
@@ -55,8 +55,6 @@ class Ship():
         self.vY = 0.0
         self.score = 0
         self.clientSock = socjet
-        #self.xDebutNegatif = self.posX < 0 # indique si posX est négatif à l'initialisation car pb avec les coordonnées négatives
-        #self.yDebutNegatif = self.posY < 0 # indique si posY est positif à l'initialisation car pb avec les coordonnées négatives
         
     def __repr__(self):
         s = self.name + ":X" +str(self.posX)+":Y"+str(self.posY)
@@ -238,8 +236,6 @@ class Connexion(threading.Thread):
                         # IL FAUT FAIRE ATTENTCION ICI PARCE QUE LE BOOLEEN acceptingNewCommands
                         if(self.name in vehicules):
                             newCommandes[self.name]=com
-#                        if(self.name not in newCommandes):
-#                            newCommandes[self.name] = "" #list et append avant
                     finally:
                         mutexNewCom.release()
                         del a
@@ -262,7 +258,6 @@ class Connexion(threading.Thread):
 class Arena(threading.Thread):
     def __init__(self, vejhicles):
         threading.Thread.__init__(self)
-#        self.joueurs = players
         self.vehicules = vejhicles
         self.maxScore = 5
         self.winner = False
@@ -277,9 +272,7 @@ class Arena(threading.Thread):
                 mutexVehicules.acquire()
                 for (joueur, ship) in self.vehicules.items():
                     m += joueur + ":X" + str(ship.posX) + ":Y" + str(ship.posY) + "|"
-#                    print(m)
-#            finally:
-#                mutexVehicules.release()
+
                 m = m[:-1]
                 m +="/"
                 try:
@@ -291,10 +284,7 @@ class Arena(threading.Thread):
                 m += "\n"
                 for (joueur, vaisseau) in vehicules.items():
                     vaisseau.clientSock.send(m.encode())
-#            try:
-#                mutexJoueurs.acquire()
-#                for (joueur, chaussette) in joueurs.items():
-#                    chaussette.clientSock.send(m.encode())
+
             finally:
                 mutexVehicules.release()
                 del m
@@ -307,7 +297,6 @@ class Arena(threading.Thread):
                     break
                 self.computeCommands()
                 i += 1
-               # print(i)
             if(self.winner):
                 try:
                     mutexVehicules.acquire()
@@ -343,8 +332,6 @@ class Arena(threading.Thread):
                     except Exception:
                         print(k," left")
                         continue
-#                    for c in v:
-
                     a,t = v.split(":")
                     #FAIRE MIEUX LES CLACULS CAR CA NE MARCHE POINT
                     vehicule.direction += float(a)
@@ -374,54 +361,12 @@ class Arena(threading.Thread):
                 
                     vehicule.posX -= largeur
                     vehicule.posY -= hauteur
-                    #vehicule.xDebutNegatif = False # Cette variable n'est plus nécessaire après le premier appel ?
-                    #vehicule.yDebutNegatif = False # Cette variable n'est plus nécessaire après le premier appel ?
-##
-##                        #vitesseX = 0.0
-##                        #vitesseY = 0.0
-##
-##                        if((vehicule.vX + float(t)) >= MAX_VITESSE):
-##                            vitesseX = MAX_VITESSE
-##                        elif((vehicule.vX + float(t)) <= -MAX_VITESSE):
-##                            vitesseX = -MAX_VITESSE
-##                        else:
-##                            vitesseX = vehicule.vX + float(t)
-##                        vehicule.vX = vitesseX + math.cos(vehicule.direction)
-##
-##                        if((vehicule.vY + float(t)) >= MAX_VITESSE):
-##                            vitesseY = MAX_VITESSE
-##                        elif((vehicule.vY + float(t)) <= -MAX_VITESSE):
-##                            vitesseY = -MAX_VITESSE
-##                        else:
-##                            vitesseY = vehicule.vY+ float(t)
-##                            
-##                        vehicule.vY = vitesseY + math.sin(vehicule.direction)
-##                        vehicule.posX = (vehicule.posX + vehicule.vX + 2*largeur)%(2*largeur)
-####                        if(math.fabs(vehicule.posX) > largeur):
-####                            if(vehicule.posX > 0):
-####                                vehicule.posX %= largeur
-####                                vehicule.posX -= largeur
-####                            else:
-####                                vehicule.posX %= largeur
-####                                vehicule.posX = -vehicule.posX
-####                                vehicule.posX += largeur
-##                        vehicule.posY = (vehicule.posY + vehicule.vY + 2*hauteur)%(2*hauteur)
-####                        if(math.fabs(vehicule.posY) > hauteur):
-####                            if(vehicule.posY > 0):
-####                                vehicule.posY %= hauteur
-####                                vehicule.posY -= hauteur
-####                            else:
-####                                vehicule.posY %= hauteur
-####                                vehicule.posY = -vehicule.posY
-####                                vehicule.posY += hauteur
-##                        vehicule.posX -= largeur
-##                        vehicule.posY -= hauteur
                     try:
                         mutexObjectif.acquire()
 #                        print("X"+str(objectif.posX))
 #                        print("Y"+str(objectif.posY))                            
                         #print("objectif")
-                        if((objectif.posX + largeur - vehicule.posX + largeur) < 20.0 and (objectif.posY + hauteur - vehicule.posY + hauteur) < 20.0):
+                        if(distance(objectif.posX, objectif.posY,vehicule.posX,vehicule.posY,100.0) ):
                             vehicule.score +=objectif.valeur;
                             if(vehicule.score >=self.maxScore):
                                 print("wiiiiiiiiiiiiiiiiiii") #winner
@@ -441,9 +386,6 @@ class Arena(threading.Thread):
                                 newObj = newObj[:-1]
                                 newObj += "/"
                                 newObj += "\n"
-                        else:
-                            print(objectif.posX + largeur - vehicule.posX + largeur)
-                            print(objectif.posY + hauteur - vehicule.posY + hauteur)
                     finally:
                         mutexObjectif.release()
 
