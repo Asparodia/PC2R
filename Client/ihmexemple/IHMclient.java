@@ -45,7 +45,6 @@ public class IHMclient extends Application {
 	public final static int HAUTEUR = 400;
 	private GridPane root;
 	Stage primaryStage;
-	// private int refreshTickRate = 3;
 	int tick = 0;
 
 	private Objectif objectif;
@@ -119,18 +118,15 @@ public class IHMclient extends Application {
 
 			BorderPane bp = new BorderPane();
 			bp.setPadding(new Insets(10, 50, 50, 50));
-			// Adding HBox
 
 			HBox hb = new HBox();
 			hb.setPadding(new Insets(20, 20, 20, 30));
 
-			// Adding GridPane
 			GridPane gridPane = new GridPane();
 			gridPane.setPadding(new Insets(20, 20, 20, 20));
 			gridPane.setHgap(5);
 			gridPane.setVgap(5);
 
-			// Implementing Nodes for GridPane
 			Label lblUserName = new Label("Username");
 			TextField txtUserName = new TextField();
 			Button btnLogin = new Button("Login");
@@ -246,14 +242,12 @@ public class IHMclient extends Application {
 		synchronized (objectif) {
 			if (!objectif.getAJour()) {
 				objectif.majPos(root.getPrefWidth() / 2, root.getPrefHeight() / 2);
-				objectif.setAJour(false);
+				objectif.setAJour(true);
 			}
 		}
 	}
 
 	public void rafraichir() {
-		// double x = player.getPosX();
-		// double y = player.getPosY();
 		double angle = player.getAngleAEnvoyer();
 		double thrust = player.getThrustAEnvoyer();
 		if (e != null) {

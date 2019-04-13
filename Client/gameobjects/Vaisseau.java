@@ -5,7 +5,6 @@ import javafx.geometry.Point2D;
 import javafx.scene.Node;
 
 public class Vaisseau extends GameObject {
-
 	private String name;
 	private double posX;
 	private double posY;
@@ -49,7 +48,6 @@ public class Vaisseau extends GameObject {
 
 	@Override
 	public void update() {
-		// if (boom) {
 		if (view != null) {
 			posX += maxWidth / 2;
 			posX = (velocity.getX() + posX + maxWidth) % (maxWidth);

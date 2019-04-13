@@ -31,7 +31,7 @@ public class Objectif extends GameObject {
 	}
 
 	public void majPos(double limiteX, double limiteY) {
-		this.view.setTranslateX(x + limiteX); // a modif
+		this.view.setTranslateX(x + limiteX); 
 		this.view.setTranslateY(y + limiteY);
 	}
 

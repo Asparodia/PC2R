@@ -45,7 +45,7 @@ public class Reception extends Thread {
 				break;
 			case "PLAYERLEFT":
 				synchronized (vehicules) {
-					vehicules.remove(separation[1]); // pb ici
+					vehicules.remove(separation[1]); 
 				}
 				break;
 			case "SESSION":
@@ -91,11 +91,14 @@ public class Reception extends Thread {
 					objectif.setAJour(false);
 				}
 				// objectif.majPos();
-				// String[] scores = separation[2].split("\\|");
+				String[] scores = separation[2].split("\\|");
+				System.out.println("--------scores-------- ");
+				for (String s : scores) {
+					System.out.println(s);
+				}
+				System.out.println("---------------------- ");
 				break;
 			case "NEWPLAYER":
-				// System.out.println(vehicules);
-				// System.out.println(nouveauVehicule);
 				synchronized (vehicules) {
 					vehicules.put(separation[1], new Vaisseau(null, separation[1], Double.MAX_VALUE, -10000));
 				}

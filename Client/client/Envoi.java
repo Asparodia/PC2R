@@ -5,9 +5,7 @@ import java.util.HashMap;
 
 import gameobjects.Vaisseau;
 
-// POUR TESTER LA VERSION TEXTE REMETTRE THREAD ET RUN
-
-public class Envoi /* extends Thread */ {
+public class Envoi {
 	PrintStream outChan = null;
 	HashMap<String, Vaisseau> vehicules;
 
