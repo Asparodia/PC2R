@@ -45,24 +45,18 @@ public class Reception extends Thread {
 			switch (separation[0]) {
 
 			case "WELCOME":
-<<<<<<< HEAD
 				// System.out.println("WELCOME(a print sur ihm)");
-				System.out.println(line);
-=======
+				//System.out.println(line);
 				System.out.println("------ WELCOME TO ASTEROID -----");
 				System.out.println("[*] CURRENT PHASE : "+separation[1]);
 				System.out.println("[*] SCORES : "+separation[2]);
 				System.out.println("[*] NEXT OBJECTIVE IS AT : "+separation[3]);
 				System.out.println("--------------------------------");
->>>>>>> beb29515eab0951d3152ac4bf1c137107b8b9a8c
 				break;
 			case "PLAYERLEFT":
 				synchronized (vehicules) {
 					vehicules.get(separation[1]).setAEnlever(true);
-<<<<<<< HEAD
 					; // pb ici
-=======
->>>>>>> beb29515eab0951d3152ac4bf1c137107b8b9a8c
 				}
 				System.out.println("[*] PLAYER LEFT : "+separation[1]);
 				break;
@@ -72,13 +66,11 @@ public class Reception extends Thread {
 				synchronized (vehicules) {
 					for (String s : listeVehicules) {
 						String[] individu = s.split(":");
-<<<<<<< HEAD
 						vehicules.put(individu[0], new Vaisseau(null,
 								individu[0], individu[1], individu[2]));
 =======
 						vehicules.put(individu[0], new Vaisseau(null, individu[0], individu[1], individu[2]));
 						System.out.println("[*] >>>>> "+individu[0]);
->>>>>>> beb29515eab0951d3152ac4bf1c137107b8b9a8c
 					}
 				}
 				String[] objectifSplit = separation[2].substring(1,
@@ -89,11 +81,8 @@ public class Reception extends Thread {
 				synchronized (listener) {
 					listener.notifyAll();
 				}
-<<<<<<< HEAD
 				// System.out.println("SESSION a print sur ihm");
-				System.out.println(line);
-=======
->>>>>>> beb29515eab0951d3152ac4bf1c137107b8b9a8c
+				//System.out.println(line);
 				break;
 			case "TICK":
 				if (separation.length > 1) {
@@ -120,15 +109,12 @@ public class Reception extends Thread {
 					objectif.setPosY(new Double(newObj[1]));
 					objectif.setAJour(false);
 				}
-<<<<<<< HEAD
 				// objectif.majPos();
 				// String[] scores = separation[2].split("\\|");
-				System.out.println(line);
-=======
+				//System.out.println(line);
 				System.out.println("[*] NEW OBJECTIVE IS AT : X "+x1+" : Y "+newObj[1]);
 				System.out.println("[*] SCORES : "+separation[2]);
 				
->>>>>>> beb29515eab0951d3152ac4bf1c137107b8b9a8c
 				break;
 			case "NEWPLAYER":
 				System.out.println("[*] NEW PLAYER JOIN THE GAME : "+separation[1]);
@@ -136,7 +122,7 @@ public class Reception extends Thread {
 					vehicules.put(separation[1], new Vaisseau(null,
 							separation[1], Double.MAX_VALUE, -10000));
 				}
-				System.out.println(line);
+				//System.out.println(line);
 				break;
 			case "NEWPOS":
 				synchronized (vehicules) {
@@ -158,7 +144,7 @@ public class Reception extends Thread {
 						courant.getValue().setFinJeu(true);
 					}
 				}
-				System.out.println(line);
+				//System.out.println(line);
 				break;
 			case "RECEPTION":
 				System.out.println("[*] "+separation[1]);
@@ -170,10 +156,7 @@ public class Reception extends Thread {
 				System.out.println("[*] DENIED this pseudo is already used or the personne you are trying to contact doesnt exist");
 				break;
 			default:
-<<<<<<< HEAD
 				System.out.println("CAS NON TRAITEE");
-=======
->>>>>>> beb29515eab0951d3152ac4bf1c137107b8b9a8c
 				break;
 			}
 

@@ -12,7 +12,7 @@ import math
 #windows : hostname sur terminal , mine is LAPTOP-IT1VP3Q2
 
 #############################" VARIABLES ##############################"
-H = "LAPTOP-IT1VP3Q2"#os.uname()[1]
+H =os.uname()[1]# "LAPTOP-IT1VP3Q2"
 
 P = 2018
 DATA = 1024
@@ -35,7 +35,7 @@ finTimer = threading.Event()
 
 server_refresh_tickrate = threading.Event()
 
-MAX_VITESSE = 5.0
+MAX_VITESSE = 3.0
 MAX_DECALAGE = 2*MAX_VITESSE
 
 ##########################################################################
