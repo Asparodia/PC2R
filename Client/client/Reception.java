@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
-
 public class Reception extends Thread {
 
 	BufferedReader inChan;
@@ -45,8 +43,6 @@ public class Reception extends Thread {
 			switch (separation[0]) {
 
 			case "WELCOME":
-				// System.out.println("WELCOME(a print sur ihm)");
-				//System.out.println(line);
 				System.out.println("------ WELCOME TO ASTEROID -----");
 				System.out.println("[*] CURRENT PHASE : "+separation[1]);
 				System.out.println("[*] SCORES : "+separation[2]);
@@ -56,7 +52,7 @@ public class Reception extends Thread {
 			case "PLAYERLEFT":
 				synchronized (vehicules) {
 					vehicules.get(separation[1]).setAEnlever(true);
-					; // pb ici
+					;
 				}
 				System.out.println("[*] PLAYER LEFT : "+separation[1]);
 				break;
@@ -66,9 +62,6 @@ public class Reception extends Thread {
 				synchronized (vehicules) {
 					for (String s : listeVehicules) {
 						String[] individu = s.split(":");
-						vehicules.put(individu[0], new Vaisseau(null,
-								individu[0], individu[1], individu[2]));
-=======
 						vehicules.put(individu[0], new Vaisseau(null, individu[0], individu[1], individu[2]));
 						System.out.println("[*] >>>>> "+individu[0]);
 					}
@@ -81,8 +74,6 @@ public class Reception extends Thread {
 				synchronized (listener) {
 					listener.notifyAll();
 				}
-				// System.out.println("SESSION a print sur ihm");
-				//System.out.println(line);
 				break;
 			case "TICK":
 				if (separation.length > 1) {
@@ -109,9 +100,6 @@ public class Reception extends Thread {
 					objectif.setPosY(new Double(newObj[1]));
 					objectif.setAJour(false);
 				}
-				// objectif.majPos();
-				// String[] scores = separation[2].split("\\|");
-				//System.out.println(line);
 				System.out.println("[*] NEW OBJECTIVE IS AT : X "+x1+" : Y "+newObj[1]);
 				System.out.println("[*] SCORES : "+separation[2]);
 				
@@ -122,29 +110,24 @@ public class Reception extends Thread {
 					vehicules.put(separation[1], new Vaisseau(null,
 							separation[1], Double.MAX_VALUE, -10000));
 				}
-				//System.out.println(line);
 				break;
 			case "NEWPOS":
 				synchronized (vehicules) {
 					Vaisseau moi = vehicules.get(separation[1]);
 					String[] coordonnees = separation[2].split("Y");
-					// System.out.println("MaJ coordonnees");
 					moi.setPosX(new Double(coordonnees[0].substring(1,
 							coordonnees[0].length() - 1)));
 					moi.setPosY(new Double(coordonnees[1]));
 				}
-				// System.out.println(line);
 			case "WINNER":
 				synchronized (vehicules) {
 					Iterator<Entry<String, Vaisseau>> iterateur = vehicules
 							.entrySet().iterator();
 					while (iterateur.hasNext()) {
 						Entry<String, Vaisseau> courant = iterateur.next();
-						// Besoin nécessairement de mutex ?
 						courant.getValue().setFinJeu(true);
 					}
 				}
-				//System.out.println(line);
 				break;
 			case "RECEPTION":
 				System.out.println("[*] "+separation[1]);

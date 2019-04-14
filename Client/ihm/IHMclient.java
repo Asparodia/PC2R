@@ -1,4 +1,4 @@
-package ihmexemple;
+package ihm;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,15 +39,14 @@ import javafx.stage.Stage;
 
 public class IHMclient extends Application {
 
-	// INFO A CONFIG POUR SE CO
-	protected final static int PORT = 2018;
+	// INFORMATION A CONFIGURER POUR SE CONNECTER
+	protected final static int PORT = 2019;
 	protected final static String HOST = "LAPTOP-IT1VP3Q2";
-
+	///////////////////////////////////////////////////
 	public final static int LARGEUR = 500;
 	public final static int HAUTEUR = 500;
 	private GridPane root;
 	Stage primaryStage;
-	// private int refreshTickRate = 3;
 	int tick = 0;
 
 	private Objectif objectif;
@@ -137,45 +136,8 @@ public class IHMclient extends Application {
 		root.getChildren().remove(object.getView());
 	}
 
+	@SuppressWarnings("unlikely-arg-type")
 	private void onUpdate() {
-		// root.getChildren().clear();
-		// for (Vaisseau v :vehicules.values()) {
-		// addGameObject(v, v.getPosX() + root.getPrefWidth() / 2,
-		// v.getPosY() + root.getPrefHeight() / 2);
-		// }
-		// System.out.println("JIUER : " + player.getPosX());
-		// System.out.println("JIUER : " + player.getPosY());
-		// System.out.println("OBJ " + objectif.getX());
-		// System.out.println("OBJ " + objectif.getY());
-		// tick++;
-		// if (tick % refreshTickRate == 0) {
-
-		// tick = 0;
-		// }
-		// synchronized (nouveauVehicule) {
-		// if (nouveauVehicule) {
-		// synchronized (vehicules) {
-		// Iterator<Entry<String, Vaisseau>> iterateur =
-		// vehicules.entrySet().iterator();
-		// while (iterateur.hasNext()) {
-		// Vaisseau v = iterateur.next().getValue();
-		// if (!v.getDejaAjoute()) {
-		// Polygon p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
-		// p.setRotate(-90);
-		// p.setFill(Color.color(random.nextDouble(), random.nextDouble(),
-		// random.nextDouble()));
-		// v.setNode(p);
-		// v.setLimits(root.getPrefWidth(), root.getPrefHeight());
-		// v.setVelocity(new Point2D(0, 0));
-		// v.setDejaAjoute(true);
-		// addGameObject(v, v.getPosX() + root.getPrefWidth() / 2,
-		// v.getPosY() + root.getPrefHeight() / 2);
-		// }
-		// }
-		// }
-		// }
-		// nouveauVehicule = false;
-		// }
 		synchronized (player) {
 			if (player.partieTerminee()) {
 				player.setFinJeu(false);
@@ -189,11 +151,6 @@ public class IHMclient extends Application {
 				Entry<String, Vaisseau> courant = iterateur.next();
 				Vaisseau v = courant.getValue();
 				if (!(v.getName().equals(player.getName()))) {
-					// v = courant.getValue();
-					// System.out.println("AVANT X : " +
-					// v.getView().getTranslateX());
-					// System.out.println("AVANT Y : " +
-					// v.getView().getTranslateY());
 					if (!v.hasNode() && v.getPosX() != Double.MAX_VALUE) {
 						Polygon p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 						p.setRotate(-90);
@@ -217,10 +174,7 @@ public class IHMclient extends Application {
 					v.moveAutreJoueur();
 				}
 				v.update();
-				// System.out.println("APRES X : " +
-				// v.getView().getTranslateX());
-				// System.out.println("APRES Y : " +
-				// v.getView().getTranslateY());
+
 			}
 		}
 
@@ -278,8 +232,6 @@ public class IHMclient extends Application {
 		synchronized (objectif) {
 			addGameObject(objectif, objectif.getPosX() + root.getPrefWidth()
 					/ 2, objectif.getPosY() + root.getPrefHeight() / 2);
-//			System.out.println("NEW X : " + objectif.getPosX());
-//			System.out.println("NEW Y : " + objectif.getPosY());
 		}
 		Polygon p;
 		Vaisseau vaisseauAAjouter;
@@ -290,7 +242,6 @@ public class IHMclient extends Application {
 				Entry<String, Vaisseau> courant = iterateur.next();
 
 				if (courant.getKey().equals(name)) {
-//					System.out.println("PLAYER : " + name);
 					p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 					p.setRotate(-90);
 					p.setFill(Color.BLACK);
@@ -306,7 +257,6 @@ public class IHMclient extends Application {
 									/ 2);
 
 				} else {
-//					System.out.println("VAISSEAU : " + courant.getKey());
 					p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 					p.setRotate(-90);
 					p.setFill(Color.color(random.nextDouble(),
@@ -337,18 +287,15 @@ public class IHMclient extends Application {
 	private Parent connexion() {
 		BorderPane bp = new BorderPane();
 		bp.setPadding(new Insets(10, 50, 50, 50));
-		// Adding HBox
 
 		HBox hb = new HBox();
 		hb.setPadding(new Insets(20, 20, 20, 30));
 
-		// Adding GridPane
 		GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(20, 20, 20, 20));
 		gridPane.setHgap(5);
 		gridPane.setVgap(5);
 
-		// Implementing Nodes for GridPane
 		Label lblUserName = new Label("Username");
 		TextField txtUserName = new TextField();
 		Button btnLogin = new Button("Login");
