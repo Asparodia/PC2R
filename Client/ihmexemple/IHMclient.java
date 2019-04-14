@@ -38,7 +38,7 @@ import javafx.stage.Stage;
 public class IHMclient extends Application {
 
 	// INFO A CONFIG POUR SE CO
-	protected final static int PORT = 20189;
+	protected final static int PORT = 2018;
 	protected final static String HOST = "ppti";
 
 	public final static int LARGEUR = 400;
@@ -219,35 +219,35 @@ public class IHMclient extends Application {
 					.iterator();
 			while (iterateur.hasNext()) {
 				Entry<String, Vaisseau> courant = iterateur.next();
-				if (courant.getKey() == player.getName()) {
-					Vaisseau v = courant.getValue();
-					v.update();
-				}
 				Vaisseau v = courant.getValue();
-				// System.out.println("AVANT X : " +
-				// v.getView().getTranslateX());
-				// System.out.println("AVANT Y : " +
-				// v.getView().getTranslateY());
-				if (!v.hasNode() && v.getPosX() != Double.MAX_VALUE) {
-					Polygon p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
-					p.setRotate(-90);
-					p.setFill(Color.color(random.nextDouble(),
-							random.nextDouble(), random.nextDouble()));
+				if (!(v.getName().equals(player.getName()))) {
 					v = courant.getValue();
-					v.setNode(p);
-					v.setLimits(root.getPrefWidth(), root.getPrefHeight());
-					v.setVelocity(new Point2D(0, 0));
-					v.setDejaAjoute(true);
-					addGameObject(v,
-							courant.getValue().getPosX() + root.getPrefWidth()
-									/ 2,
-							courant.getValue().getPosY() + root.getPrefHeight()
-									/ 2);
-				} else if (v.getAEnlever()) {
-					root.getChildren().remove(v.getView());
-					vehicules.remove(v);
+					// System.out.println("AVANT X : " +
+					// v.getView().getTranslateX());
+					// System.out.println("AVANT Y : " +
+					// v.getView().getTranslateY());
+					if (!v.hasNode() && v.getPosX() != Double.MAX_VALUE) {
+						Polygon p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
+						p.setRotate(-90);
+						p.setFill(Color.color(random.nextDouble(),
+								random.nextDouble(), random.nextDouble()));
+						v = courant.getValue();
+						v.setNode(p);
+						v.setLimits(root.getPrefWidth(), root.getPrefHeight());
+						v.setVelocity(new Point2D(0, 0));
+						v.setDejaAjoute(true);
+						addGameObject(
+								v,
+								courant.getValue().getPosX()
+										+ root.getPrefWidth() / 2,
+								courant.getValue().getPosY()
+										+ root.getPrefHeight() / 2);
+					} else if (v.getAEnlever()) {
+						root.getChildren().remove(v.getView());
+						vehicules.remove(v);
+					}
+					v.moveAutreJoueur();
 				}
-				v.moveAutreJoueur();
 				v.update();
 				// System.out.println("APRES X : " +
 				// v.getView().getTranslateX());
