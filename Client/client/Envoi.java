@@ -42,7 +42,7 @@ public class Envoi /* extends Thread */ {
 	public void envoi(String msg) {
 		String[] rep = msg.split("/");
 		if(rep.length >1) {
-			String name = rep[0].substring(2, rep[0].length());
+			String name = rep[0];
 			String m = rep[1];
 			outChan.print("PENVOI/"+name+"/"+ m+ "/");
 			outChan.flush();
