@@ -39,7 +39,7 @@ public class IHMclient extends Application {
 
 	// INFO A CONFIG POUR SE CO
 	protected final static int PORT = 2018;
-	protected final static String HOST = "ppti";
+	protected final static String HOST = "LAPTOP-IT1VP3Q2";
 
 	public final static int LARGEUR = 400;
 	public final static int HAUTEUR = 400;
@@ -304,7 +304,7 @@ public class IHMclient extends Application {
 				Entry<String, Vaisseau> courant = iterateur.next();
 
 				if (courant.getKey().equals(name)) {
-					System.out.println("PLAYER : " + name);
+//					System.out.println("PLAYER : " + name);
 					p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 					p.setRotate(-90);
 					p.setFill(Color.BLACK);
@@ -320,7 +320,7 @@ public class IHMclient extends Application {
 									/ 2);
 
 				} else {
-					System.out.println("VAISSEAU : " + courant.getKey());
+//					System.out.println("VAISSEAU : " + courant.getKey());
 					p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 					p.setRotate(-90);
 					p.setFill(Color.color(random.nextDouble(),

@@ -33,7 +33,7 @@ public class Reception extends Thread {
 				e.printStackTrace();
 			}
 			if (line == null) {
-				System.out.println("bye bye");
+				System.out.println("--- bye bye ---");
 				break;
 			}
 			String[] separation = line.split("/");
@@ -43,8 +43,8 @@ public class Reception extends Thread {
 				System.out.println("------ WELCOME TO ASTEROID -----");
 				System.out.println("[*] CURRENT PHASE : "+separation[1]);
 				System.out.println("[*] SCORES : "+separation[2]);
-				String[] coord = separation[3].split(":");
-				System.out.println("[*] NEXT OBJECTIVE IS AT : X "+coord[0].substring(1, coord[0].length() - 1)+" : Y "+coord[1].substring(1, coord[0].length() - 1));
+				System.out.println("[*] NEXT OBJECTIVE IS AT : "+separation[3]);
+				System.out.println("--------------------------------");
 				break;
 			case "PLAYERLEFT":
 				synchronized (vehicules) {
@@ -114,7 +114,6 @@ public class Reception extends Thread {
 				System.out.println("[*] DENIED this pseudo is already used or the personne you are trying to contact doesnt exist");
 				break;
 			default:
-				// System.out.println("CAS NON TRAITEE");
 				break;
 			}
 
@@ -126,7 +125,6 @@ public class Reception extends Thread {
 		String[] coordonnees = premier[0].substring(1, premier[0].length() - 1).split("Y");
 		String[] deuxieme = premier[1].split("VY");
 		String[] troisieme = deuxieme[1].split("T");
-
 		String x = coordonnees[0];
 		String y = coordonnees[1];
 		String vx = deuxieme[0];

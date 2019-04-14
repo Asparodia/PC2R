@@ -12,7 +12,7 @@ import math
 #windows : hostname sur terminal , mine is LAPTOP-IT1VP3Q2
 
 #############################" VARIABLES ##############################"
-H = 0#os.uname()[1]
+H = "LAPTOP-IT1VP3Q2"#os.uname()[1]
 
 P = 2018
 DATA = 1024
@@ -441,11 +441,11 @@ class Server:
             print("------- Client connected ------\n")
             t = Connexion(clientSock,addr);
             t.start()         
-#server = Server()
+server = Server()
 
-while True:
-    print ("Veuillez entre le hostname : ")
-    h = input()
-    print ("Veuillez entre le port : ")
-    p = input()
-    server = Server(h,int(p))
+#while True:
+#    print ("Veuillez entre le hostname : ")
+#    h = input()
+#    print ("Veuillez entre le port : ")
+#    p = input()
+#    server = Server(h,int(p))
