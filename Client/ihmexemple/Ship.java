@@ -1,6 +1,6 @@
 package ihmexemple;
 
-import ihmexemple.GameObject;
+import gameobjects.GameObject;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 

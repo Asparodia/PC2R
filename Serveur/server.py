@@ -18,8 +18,8 @@ print("hostname :",H)
 P = 2018
 DATA = 1024
 
-hauteur = 200.0
-largeur = 200.0
+hauteur = 250.0
+largeur = 250.0
 
 
 mutexVehicules = threading.Lock()
@@ -36,7 +36,8 @@ finTimer = threading.Event()
 
 server_refresh_tickrate = threading.Event()
 
-MAX_VITESSE = 3.0
+MAX_VITESSE = 5.0
+MAX_DECALAGE = 2*MAX_VITESSE
 
 ##########################################################################
 def distance(x1,y1,x2,y2,rad):
@@ -73,7 +74,16 @@ class Objectif():
         self.posX = random.uniform(-largeur, largeur)
         self.posY = random.uniform(-hauteur, hauteur)
         self.valeur = 1 # Pour différencier si jamais on met plusieurs types d'objets récupérables
-
+        self.rayon = 20.0
+        
+    def contact(self, vehicule):
+        if((self.posX+self.rayon) >= vehicule.posX):
+            if((self.posX-self.rayon) <= vehicule.posX):
+                if((self.posY+self.rayon) >= vehicule.posY):
+                    if((self.posY-self.rayon) <= vehicule.posY):
+                        return True
+        return False
+        
     def resetPos(self):
         self.posX = random.uniform(-largeur, largeur)
         self.posY = random.uniform(-hauteur, hauteur)       
@@ -205,7 +215,7 @@ class Connexion(threading.Thread):
                         vehicules.pop(reply[1])
                         mutexNewCom.acquire()
                         newCommandes.pop(reply[1])
-                        
+                        self.name = None
                     except KeyError:
                         print("this player is not in here")
                 finally:
@@ -217,11 +227,26 @@ class Connexion(threading.Thread):
                 c =reply[1][1:]
                 rc = c.split('Y')
                 del c
-                #self.ship.posX = float(rc[0])%largeur #Bizarre ici aussi
-                #self.ship.posY = float(rc[1])%hauteur # C'EST QUOI CE TRUC DE MERDE ?
+                posX = float(rc[0])
+                posY = float(rc[1])
+                m = ""
+                try:
+                    mutexVehicules.acquire()
+                    if(self.name in vehicules.keys()):
+                        v = vehicules[self.name]
+                        if(((posX + largeur - v.posX + largeur ) < (MAX_DECALAGE + 2*largeur)) and ((posY + hauteur - v.posY + hauteur ) < (MAX_DECALAGE + 2*hauteur))):
+                            v.posX = posX
+                            v.posY = posY
+                            #print("MàJ pos")
+                        else:
+                            #print("envoyer coord au client")
+                            m += "NEWPOS/" + self.name +"/X" + str(v.posX) + "Y" + str(v.posY) +"\n"
+                            self.clientSock.send(m.encode()) 
+                finally:
+                    mutexVehicules.release()
                 del rc
-                m = "POSITION_SET\n"
-                self.clientSock.send(m.encode()) 
+                #m = "POSITION_SET\n"
+                #self.clientSock.send(m.encode()) 
                 del m
                 
             if(reply[0] == "NEWCOM"):
@@ -288,7 +313,7 @@ class Arena(threading.Thread):
             finally:
                 mutexVehicules.release()
                 del m
-            tick = Tickrate(0.2)
+            tick = Tickrate(0.05)
             tick.start()
             i = 0
             while not self.winner:
@@ -366,7 +391,7 @@ class Arena(threading.Thread):
 #                        print("X"+str(objectif.posX))
 #                        print("Y"+str(objectif.posY))                            
                         #print("objectif")
-                        if(distance(objectif.posX, objectif.posY,vehicule.posX,vehicule.posY,20.0) ):
+                        if(objectif.contact(vehicule)):
                             vehicule.score +=objectif.valeur;
                             if(vehicule.score >=self.maxScore):
                                 print("wiiiiiiiiiiiiiiiiiii") #winner

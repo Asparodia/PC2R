@@ -1,5 +1,6 @@
 package ihmexemple;
 
+import gameobjects.GameObject;
 import gameobjects.Vaisseau;
 
 import java.util.ArrayList;

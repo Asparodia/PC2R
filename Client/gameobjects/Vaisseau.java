@@ -1,28 +1,27 @@
 package gameobjects;
 
-import ihmexemple.GameObject;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 
 public class Vaisseau extends GameObject {
 
 	private String name;
-	private double posX;
-	private double posY;
 	private double direction;
 	private double vX;
 	private double vY;
 	private int score;
 	private boolean dejaAjoute = false;
 	private boolean aEnlever = false;
+	private boolean finJeu = false;
 
 	private double maxWidth;
 	private double maxHeight;
 
-	private final static double CAPVITESSE = 3.0;
+	private final static double CAPVITESSE = 5.0;
 	private final static double THRUST = 1;
 	private final static double CLOCK = 6.0;
 	private final static double ANTICLOCK = -6.0;
+
 	private double angleAenvoyer = 0.0;
 	private double thrustAEnvoyer = 0.0;
 
@@ -62,6 +61,7 @@ public class Vaisseau extends GameObject {
 					% maxWidth);
 			view.setTranslateY((view.getTranslateY() + velocity.getY() + maxHeight)
 					% maxHeight);
+			// view.setRotate(Math.toDegrees(direction));
 		}
 	}
 
@@ -152,22 +152,6 @@ public class Vaisseau extends GameObject {
 		this.name = name;
 	}
 
-	public double getPosX() {
-		return posX;
-	}
-
-	public void setPosX(double posX) {
-		this.posX = posX;
-	}
-
-	public double getPosY() {
-		return posY;
-	}
-
-	public void setPosY(double posY) {
-		this.posY = posY;
-	}
-
 	public double getDirection() {
 		return direction;
 	}
@@ -234,5 +218,13 @@ public class Vaisseau extends GameObject {
 
 	public boolean hasNode() {
 		return view != null;
+	}
+
+	public void setFinJeu(boolean etat) {
+		finJeu = etat;
+	}
+
+	public boolean partieTerminee() {
+		return finJeu;
 	}
 }
