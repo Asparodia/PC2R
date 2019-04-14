@@ -40,10 +40,11 @@ public class Envoi /* extends Thread */ {
 	}
 	
 	public void envoi(String msg) {
-		if(msg.substring(0, 2) == "mp ") {
-			String m = msg.substring(1, 2);
-			String[] rep = m.split("/");
-			outChan.print("PENVOI/" +rep[0]+"/"+ rep[1]+ "/");
+		String[] rep = msg.split("/");
+		if(rep.length >1) {
+			String name = rep[0].substring(2, rep[0].length());
+			String m = rep[1];
+			outChan.print("PENVOI/"+name+"/"+ m+ "/");
 			outChan.flush();
 		}
 		else {

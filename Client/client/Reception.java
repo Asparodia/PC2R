@@ -139,7 +139,6 @@ public class Reception extends Thread {
 				System.out.println("[*] DENIED this pseudo is already used or the personne you are trying to contact doesnt exist");
 				break;
 			default:
-				System.out.println("CAS NON TRAITEE");
 				break;
 			}
 
