@@ -211,11 +211,9 @@ public class IHMclient extends Application {
 		root = new GridPane();
 		root.setPrefSize(LARGEUR, HAUTEUR);
 		Button btnExit = new Button("Exit");
-		Label lblTexte = new Label("Chat");
 		TextField texte = new TextField();
 		Button btnEnvoyer = new Button("Envoyer");
 		root.add(btnExit, 0, 0);
-		root.add(lblTexte, LARGEUR, HAUTEUR);
 		root.add(texte, 0, HAUTEUR);
 		root.add(btnEnvoyer, LARGEUR, 0);
 		btnEnvoyer.setOnAction((event) -> {
