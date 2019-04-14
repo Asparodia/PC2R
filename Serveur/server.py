@@ -3,18 +3,13 @@
 import time
 import socket
 import threading
-import os
 import random
 import math
 
-# IL FAUT MIEUX PLACER LES MUTEX
-
-#windows : hostname sur terminal , mine is LAPTOP-IT1VP3Q2
-
 #############################" VARIABLES ##############################"
-H =os.uname()[1]# "LAPTOP-IT1VP3Q2"
+# "LAPTOP-IT1VP3Q2"
 
-P = 2018
+
 DATA = 1024
 
 hauteur = 250.0
@@ -236,16 +231,13 @@ class Connexion(threading.Thread):
                         if(((posX + largeur - v.posX + largeur ) < (MAX_DECALAGE + 2*largeur)) and ((posY + hauteur - v.posY + hauteur ) < (MAX_DECALAGE + 2*hauteur))):
                             v.posX = posX
                             v.posY = posY
-                            #print("MàJ pos")
+
                         else:
-                            #print("envoyer coord au client")
                             m += "NEWPOS/" + self.name +"/X" + str(v.posX) + "Y" + str(v.posY) +"\n"
                             self.clientSock.send(m.encode()) 
                 finally:
                     mutexVehicules.release()
-                del rc
-                #m = "POSITION_SET\n"
-                #self.clientSock.send(m.encode()) 
+                del rc 
                 del m
                 
             if(reply[0] == "NEWCOM"):
@@ -257,7 +249,6 @@ class Connexion(threading.Thread):
                 if(acceptingNewCommands):
                     try:
                         mutexNewCom.acquire()
-                        # IL FAUT FAIRE ATTENTCION ICI PARCE QUE LE BOOLEEN acceptingNewCommands
                         if(self.name in vehicules):
                             newCommandes[self.name]=com
                     finally:
@@ -295,7 +286,7 @@ class Connexion(threading.Thread):
             del reply
             
         print("SORTIE DE LA BOUCLE")
-        self.clientSock.close() #mieux gerer la deco du cote client ptete quand il recoi playleft il se ferme
+        self.clientSock.close() 
       
 ###############################################################################
       
@@ -308,9 +299,9 @@ class Arena(threading.Thread):
 
     def run(self):
         while(True):
-            print("DEBUT")
+            print("ATTENTE")
             finTimer.wait()
-            print("LE VRAI DEBUT DE SESSION")
+            print("DEBUT DE SESSION")
             m = "SESSION/"
             try:
                 mutexVehicules.acquire()
@@ -377,7 +368,6 @@ class Arena(threading.Thread):
                         print(k," left")
                         continue
                     a,t = v.split(":")
-                    #FAIRE MIEUX LES CLACULS CAR CA NE MARCHE POINT
                     vehicule.direction += float(a)
                     vehicule.posX += largeur
                     vehicule.posY += hauteur
@@ -407,13 +397,9 @@ class Arena(threading.Thread):
                     vehicule.posY -= hauteur
                     try:
                         mutexObjectif.acquire()
-#                        print("X"+str(objectif.posX))
-#                        print("Y"+str(objectif.posY))                            
-                        #print("objectif")
                         if(objectif.contact(vehicule)):
                             vehicule.score +=objectif.valeur;
                             if(vehicule.score >=self.maxScore):
-                                print("wiiiiiiiiiiiiiiiiiii") #winner
                                 self.winner = True
                             else:
                                 print("reset pos")
@@ -430,12 +416,10 @@ class Arena(threading.Thread):
                         mutexObjectif.release()
 
                     reponse += str(k)+":"+"X"+str(vehicule.posX)+"Y"+str(vehicule.posY)+"VX"+str(vehicule.vX)+"VY"+str(vehicule.vY)+"T"+str(vehicule.direction)+"|"
-#                print(reponse)
                 newCommandes = dict()
                 reponse = reponse[:-1]
                 reponse += "\n"
                 for (joueur, s) in self.vehicules.items():
-                    #print(reponse)
                     s.clientSock.send(reponse.encode())
                 if(len(newObj)>8):
                     print(newObj)
@@ -448,7 +432,7 @@ class Arena(threading.Thread):
             
 ###############################################################################
 class Server:
-     def __init__(self,host=H,port=P):
+     def __init__(self,host,port):
         self.sockServ = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         try:
             self.sockServ.bind((host,port))
@@ -466,11 +450,11 @@ class Server:
             print("------- Client connected ------\n")
             t = Connexion(clientSock,addr);
             t.start()         
-server = Server()
 
-#while True:
-#    print ("Veuillez entre le hostname : ")
-#    h = input()
-#    print ("Veuillez entre le port : ")
-#    p = input()
-#    server = Server(h,int(p))
+
+while True:
+    print ("Veuillez entre le hostname : ")
+    h = input()
+    print ("Veuillez entre le port : ")
+    p = input()
+    server = Server(h,int(p))
