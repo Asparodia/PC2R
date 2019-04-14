@@ -1,5 +1,9 @@
 package ihm;
 
+import gameobjects.GameObject;
+import gameobjects.Objectif;
+import gameobjects.Vaisseau;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -12,11 +16,6 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import client.Envoi;
-import client.Reception;
-import gameobjects.GameObject;
-import gameobjects.Objectif;
-import gameobjects.Vaisseau;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -36,13 +35,15 @@ import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import client.Envoi;
+import client.Reception;
 
 public class IHMclient extends Application {
 
 	// INFORMATION A CONFIGURER POUR SE CONNECTER
-	protected final static int PORT = 2019;
-	protected final static String HOST = "LAPTOP-IT1VP3Q2";
-	///////////////////////////////////////////////////
+	protected final static int PORT = 2018;
+	protected final static String HOST = "ppti";
+	// /////////////////////////////////////////////////
 	public final static int LARGEUR = 500;
 	public final static int HAUTEUR = 500;
 	private GridPane root;
@@ -56,7 +57,7 @@ public class IHMclient extends Application {
 	private static Timer timer = new Timer();
 
 	private Envoi e;
-	private Object listener = new Object();
+	private DebutJeu listener = new DebutJeu();
 	private Random random = new Random();
 
 	public IHMclient() {
@@ -180,8 +181,8 @@ public class IHMclient extends Application {
 
 		synchronized (objectif) {
 			if (!objectif.getAJour()) {
-				System.out.println("NEW X : " + objectif.getPosX());
-				System.out.println("NEW Y : " + objectif.getPosY());
+				// System.out.println("NEW X : " + objectif.getPosX());
+				// System.out.println("NEW Y : " + objectif.getPosY());
 				removeGameObject(objectif);
 				objectif.update();
 				addGameObject(objectif,
@@ -218,10 +219,7 @@ public class IHMclient extends Application {
 		root.add(btnEnvoyer, LARGEUR, 0);
 		btnEnvoyer.setOnAction((event) -> {
 			e.envoi(texte.getText());
-			texte.clear();
-
 		});
-		
 
 		btnExit.setOnAction((event) -> {
 			e.exit(name);
@@ -310,12 +308,16 @@ public class IHMclient extends Application {
 		bp.setTop(hb);
 		bp.setCenter(gridPane);
 		btnLogin.setOnAction((event) -> {
-			e.connexion(txtUserName.getText());
 			name = txtUserName.getText();
 			try {
 				synchronized (listener) {
+					e.connexion(txtUserName.getText());
 					listener.wait();
-					changeScene(Ecran.JEU);
+					if (listener.getConnexionReussi()) {
+						changeScene(Ecran.JEU);
+					} else {
+						changeScene(Ecran.ACCUEIL);
+					}
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();

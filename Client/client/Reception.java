@@ -2,6 +2,7 @@ package client;
 
 import gameobjects.Objectif;
 import gameobjects.Vaisseau;
+import ihm.DebutJeu;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,11 +16,11 @@ public class Reception extends Thread {
 	String line;
 	HashMap<String, Vaisseau> vehicules;
 
-	Object listener;
+	DebutJeu listener;
 	Objectif objectif;
 
 	public Reception(BufferedReader b, HashMap<String, Vaisseau> vehicules,
-			Object list, Objectif objectif) {
+			DebutJeu list, Objectif objectif) {
 		inChan = b;
 		this.vehicules = vehicules;
 		this.listener = list;
@@ -44,17 +45,21 @@ public class Reception extends Thread {
 
 			case "WELCOME":
 				System.out.println("------ WELCOME TO ASTEROID -----");
-				System.out.println("[*] CURRENT PHASE : "+separation[1]);
-				System.out.println("[*] SCORES : "+separation[2]);
-				System.out.println("[*] NEXT OBJECTIVE IS AT : "+separation[3]);
+				System.out.println("[*] CURRENT PHASE : " + separation[1]);
+				System.out.println("[*] SCORES : " + separation[2]);
+				System.out.println("[*] NEXT OBJECTIVE IS AT : "
+						+ separation[3]);
 				System.out.println("--------------------------------");
+				synchronized (listener) {
+					listener.setConnexionReussi(true);
+				}
 				break;
 			case "PLAYERLEFT":
 				synchronized (vehicules) {
 					vehicules.get(separation[1]).setAEnlever(true);
 					;
 				}
-				System.out.println("[*] PLAYER LEFT : "+separation[1]);
+				System.out.println("[*] PLAYER LEFT : " + separation[1]);
 				break;
 			case "SESSION":
 				System.out.println("[*] SESSION STARTED WITH :");
@@ -62,15 +67,15 @@ public class Reception extends Thread {
 				synchronized (vehicules) {
 					for (String s : listeVehicules) {
 						String[] individu = s.split(":");
-						vehicules.put(individu[0], new Vaisseau(null, individu[0], individu[1], individu[2]));
-						System.out.println("[*] >>>>> "+individu[0]);
+						vehicules.put(individu[0], new Vaisseau(null,
+								individu[0], individu[1], individu[2]));
+						System.out.println("[*] >>>>> " + individu[0]);
 					}
 				}
 				String[] objectifSplit = separation[2].substring(1,
 						separation[2].length() - 1).split("Y");
 				this.objectif.setPosX(new Double(objectifSplit[0]));
 				this.objectif.setPosY(new Double(objectifSplit[1]));
-
 				synchronized (listener) {
 					listener.notifyAll();
 				}
@@ -100,12 +105,14 @@ public class Reception extends Thread {
 					objectif.setPosY(new Double(newObj[1]));
 					objectif.setAJour(false);
 				}
-				System.out.println("[*] NEW OBJECTIVE IS AT : X "+x1+" : Y "+newObj[1]);
-				System.out.println("[*] SCORES : "+separation[2]);
-				
+				System.out.println("[*] NEW OBJECTIVE IS AT : X " + x1
+						+ " : Y " + newObj[1]);
+				System.out.println("[*] SCORES : " + separation[2]);
+
 				break;
 			case "NEWPLAYER":
-				System.out.println("[*] NEW PLAYER JOIN THE GAME : "+separation[1]);
+				System.out.println("[*] NEW PLAYER JOIN THE GAME : "
+						+ separation[1]);
 				synchronized (vehicules) {
 					vehicules.put(separation[1], new Vaisseau(null,
 							separation[1], Double.MAX_VALUE, -10000));
@@ -130,13 +137,19 @@ public class Reception extends Thread {
 				}
 				break;
 			case "RECEPTION":
-				System.out.println("[*] "+separation[1]);
+				System.out.println("[*] " + separation[1]);
 				break;
 			case "PRECEPTION":
-				System.out.println("[*] >>>MP from "+separation[2]+" : "+separation[1]);
+				System.out.println("[*] >>>MP from " + separation[2] + " : "
+						+ separation[1]);
 				break;
 			case "DENIED":
-				System.out.println("[*] DENIED this pseudo is already used or the personne you are trying to contact doesnt exist");
+				System.out
+						.println("[*] DENIED this pseudo is already used or the personne you are trying to contact doesnt exist");
+				synchronized (listener) {
+					listener.setConnexionReussi(false);
+					listener.notifyAll();
+				}
 				break;
 			default:
 				break;
