@@ -40,20 +40,26 @@ public class Reception extends Thread {
 			switch (separation[0]) {
 
 			case "WELCOME":
-				System.out.println("WELCOME(a print sur ihm)");
-				System.out.println(line);
+				System.out.println("------ WELCOME TO ASTEROID -----");
+				System.out.println("[*] CURRENT PHASE : "+separation[1]);
+				System.out.println("[*] SCORES : "+separation[2]);
+				String[] coord = separation[3].split(":");
+				System.out.println("[*] NEXT OBJECTIVE IS AT : X "+coord[0].substring(1, coord[0].length() - 1)+" : Y "+coord[1].substring(1, coord[0].length() - 1));
 				break;
 			case "PLAYERLEFT":
 				synchronized (vehicules) {
-					vehicules.get(separation[1]).setAEnlever(true);; // pb ici
+					vehicules.get(separation[1]).setAEnlever(true);
 				}
+				System.out.println("[*] PLAYER LEFT : "+separation[1]);
 				break;
 			case "SESSION":
+				System.out.println("[*] SESSION STARTED WITH :");
 				String[] listeVehicules = separation[1].split("\\|");
 				synchronized (vehicules) {
 					for (String s : listeVehicules) {
 						String[] individu = s.split(":");
 						vehicules.put(individu[0], new Vaisseau(null, individu[0], individu[1], individu[2]));
+						System.out.println("[*] >>>>> "+individu[0]);
 					}
 				}
 				String[] objectifSplit = separation[2].substring(1, separation[2].length() - 1).split("Y");
@@ -63,7 +69,6 @@ public class Reception extends Thread {
 				synchronized (listener) {
 					listener.notifyAll();
 				}
-				System.out.println("SESSION a print sur ihm");
 				break;
 			case "TICK":
 				if (separation.length > 1) {
@@ -75,7 +80,6 @@ public class Reception extends Thread {
 							System.out.println("PB dans TICK courant est null");
 							continue;
 						}
-						// System.out.println(s);
 						String[] c = leVraiSplit(coordonnee[1]);
 						courant.MaJPos(new Double(c[0]), new Double(c[1]), new Double(c[2]), new Double(c[3]),
 								new Double(c[4]));
@@ -90,15 +94,24 @@ public class Reception extends Thread {
 					objectif.setY(new Double(newObj[1]));
 					objectif.setAJour(false);
 				}
-				// objectif.majPos();
-				// String[] scores = separation[2].split("\\|");
+				System.out.println("[*] NEW OBJECTIVE IS AT : X "+x1+" : Y "+newObj[1]);
+				System.out.println("[*] SCORES : "+separation[2]);
+				
 				break;
 			case "NEWPLAYER":
-				// System.out.println(vehicules);
-				// System.out.println(nouveauVehicule);
+				System.out.println("[*] NEW PLAYER JOIN THE GAME : "+separation[1]);
 				synchronized (vehicules) {
 					vehicules.put(separation[1], new Vaisseau(null, separation[1], Double.MAX_VALUE, -10000));
 				}
+				break;
+			case "RECEPTION":
+				System.out.println("[*] "+separation[1]);
+				break;
+			case "PRECEPTION":
+				System.out.println("[*] >>>MP from "+separation[2]+" : "+separation[1]);
+				break;
+			case "DENIED":
+				System.out.println("[*] DENIED this pseudo is already used or the personne you are trying to contact doesnt exist");
 				break;
 			default:
 				// System.out.println("CAS NON TRAITEE");

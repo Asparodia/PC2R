@@ -40,12 +40,17 @@ public class Envoi /* extends Thread */ {
 	}
 	
 	public void envoi(String msg) {
-		outChan.print("ENVOI/" + msg+ "/");
-		outChan.flush();
+		if(msg.substring(0, 2) == "mp ") {
+			String m = msg.substring(1, 2);
+			String[] rep = m.split("/");
+			outChan.print("PENVOI/" +rep[0]+"/"+ rep[1]+ "/");
+			outChan.flush();
+		}
+		else {
+			outChan.print("ENVOI/" + msg+ "/");
+			outChan.flush();
+		}
+		
 	}
 	
-	public void envoiPrivee(String name,String msg) {
-		outChan.print("PENVOI/" +name+"/"+ msg+ "/");
-		outChan.flush();
-	}
 }

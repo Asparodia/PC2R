@@ -12,9 +12,8 @@ import math
 #windows : hostname sur terminal , mine is LAPTOP-IT1VP3Q2
 
 #############################" VARIABLES ##############################"
-H = os.uname()[1]
+H = 0#os.uname()[1]
 
-print("hostname :",H)
 P = 2018
 DATA = 1024
 
@@ -242,10 +241,30 @@ class Connexion(threading.Thread):
                         del t
                         del com
 
-            if(reply[0] == "KILL"):
-                del request
-                del reply
-                break
+            if(reply[0] == "ENVOI"):
+                m = "RECEPTION/>>>"+self.name+" : "+str(reply[1])+"\n"
+                try:
+                    mutexVehicules.acquire()                    
+                    for (pseudo, vaisseau) in vehicules.items():
+                        vaisseau.clientSock.send(m.encode())
+                finally:
+                    mutexVehicules.release()
+                del m
+            if(reply[0] == "PENVOI"):
+                
+                m = "PRECEPTION/"+str(reply[2])+"/"+str(reply[1])+"\n"
+                try:
+                    mutexVehicules.acquire() 
+                    if(str(reply[1]) in vehicules):
+                        for (pseudo, vaisseau) in vehicules.items():
+                            if pseudo == str(reply[1]):
+                                vaisseau.clientSock.send(m.encode())
+                    else:
+                        m = "DENIED\n"
+                        self.clientSock.send(m.encode())
+                finally:
+                    mutexVehicules.release()
+                    del m
             
             del request
             del reply
@@ -414,10 +433,19 @@ class Server:
         self.sockServ.listen(10)
         
         print("------- Server ready --------\n")
+        print("------- Host : "+host+" -----\n")
+        print("------- Port : "+str(port)+" -----\n")
         Arena(vehicules).start() 
         while True:
             clientSock, addr = self.sockServ.accept()
             print("------- Client connected ------\n")
             t = Connexion(clientSock,addr);
             t.start()         
-server = Server()
+#server = Server()
+
+while True:
+    print ("Veuillez entre le hostname : ")
+    h = input()
+    print ("Veuillez entre le port : ")
+    p = input()
+    server = Server(h,int(p))
