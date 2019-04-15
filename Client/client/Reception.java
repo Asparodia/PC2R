@@ -1,14 +1,12 @@
 package client;
 
-import gameobjects.Objectif;
-import gameobjects.Vaisseau;
-import ihm.DebutJeu;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
+
+import gameobjects.Objectif;
+import gameobjects.Vaisseau;
+import ihm.EtatJeu;
 
 public class Reception extends Thread {
 
@@ -16,11 +14,10 @@ public class Reception extends Thread {
 	String line;
 	HashMap<String, Vaisseau> vehicules;
 
-	DebutJeu listener;
+	EtatJeu listener;
 	Objectif objectif;
 
-	public Reception(BufferedReader b, HashMap<String, Vaisseau> vehicules,
-			DebutJeu list, Objectif objectif) {
+	public Reception(BufferedReader b, HashMap<String, Vaisseau> vehicules, EtatJeu list, Objectif objectif) {
 		inChan = b;
 		this.vehicules = vehicules;
 		this.listener = list;
@@ -47,8 +44,7 @@ public class Reception extends Thread {
 				System.out.println("------ WELCOME TO ASTEROID -----");
 				System.out.println("[*] CURRENT PHASE : " + separation[1]);
 				System.out.println("[*] SCORES : " + separation[2]);
-				System.out.println("[*] NEXT OBJECTIVE IS AT : "
-						+ separation[3]);
+				System.out.println("[*] NEXT OBJECTIVE IS AT : " + separation[3]);
 				System.out.println("--------------------------------");
 				synchronized (listener) {
 					listener.setConnexionReussi(true);
@@ -67,13 +63,12 @@ public class Reception extends Thread {
 				synchronized (vehicules) {
 					for (String s : listeVehicules) {
 						String[] individu = s.split(":");
-						vehicules.put(individu[0], new Vaisseau(null,
-								individu[0], individu[1], individu[2]));
+						vehicules.put(individu[0], new Vaisseau(null, individu[0], individu[1], individu[2]));
+						// System.out.println(vehicules);
 						System.out.println("[*] >>>>> " + individu[0]);
 					}
 				}
-				String[] objectifSplit = separation[2].substring(1,
-						separation[2].length() - 1).split("Y");
+				String[] objectifSplit = separation[2].substring(1, separation[2].length() - 1).split("Y");
 				this.objectif.setPosX(new Double(objectifSplit[0]));
 				this.objectif.setPosY(new Double(objectifSplit[1]));
 				synchronized (listener) {
@@ -91,9 +86,8 @@ public class Reception extends Thread {
 							continue;
 						}
 						String[] c = leVraiSplit(coordonnee[1]);
-						courant.MaJPos(new Double(c[0]), new Double(c[1]),
-								new Double(c[2]), new Double(c[3]), new Double(
-										c[4]));
+						courant.MaJPos(new Double(c[0]), new Double(c[1]), new Double(c[2]), new Double(c[3]),
+								new Double(c[4]));
 					}
 				}
 				break;
@@ -105,47 +99,48 @@ public class Reception extends Thread {
 					objectif.setPosY(new Double(newObj[1]));
 					objectif.setAJour(false);
 				}
-				System.out.println("[*] NEW OBJECTIVE IS AT : X " + x1
-						+ " : Y " + newObj[1]);
+				System.out.println("[*] NEW OBJECTIVE IS AT : X " + x1 + " : Y " + newObj[1]);
 				System.out.println("[*] SCORES : " + separation[2]);
 
 				break;
 			case "NEWPLAYER":
-				System.out.println("[*] NEW PLAYER JOIN THE GAME : "
-						+ separation[1]);
+				System.out.println("[*] NEW PLAYER JOIN THE GAME : " + separation[1]);
 				synchronized (vehicules) {
-					vehicules.put(separation[1], new Vaisseau(null,
-							separation[1], Double.MAX_VALUE, -10000));
+					vehicules.put(separation[1], new Vaisseau(null, separation[1], Double.MAX_VALUE, -10000));
 				}
 				break;
 			case "NEWPOS":
 				synchronized (vehicules) {
 					Vaisseau moi = vehicules.get(separation[1]);
 					String[] coordonnees = separation[2].split("Y");
-					moi.setPosX(new Double(coordonnees[0].substring(1,
-							coordonnees[0].length() - 1)));
-					moi.setPosY(new Double(coordonnees[1]));
+					synchronized (listener) {
+						moi.setPosX(new Double(coordonnees[0].substring(1, coordonnees[0].length() - 1)));
+						moi.setPosY(new Double(coordonnees[1]));
+						listener.setNewPos(true);
+					}
 				}
 			case "WINNER":
 				synchronized (vehicules) {
-					Iterator<Entry<String, Vaisseau>> iterateur = vehicules
-							.entrySet().iterator();
-					while (iterateur.hasNext()) {
-						Entry<String, Vaisseau> courant = iterateur.next();
-						courant.getValue().setFinJeu(true);
-					}
+					// Iterator<Entry<String, Vaisseau>> iterateur = vehicules
+					// .entrySet().iterator();
+					// while (iterateur.hasNext()) {
+					// Entry<String, Vaisseau> courant = iterateur.next();
+					// courant.getValue().setFinJeu(true);
+					// }
+					// synchronized (listener) {
+					// listener.setPartieTerminee(true);
+					// }
 				}
 				break;
 			case "RECEPTION":
 				System.out.println("[*] " + separation[1]);
 				break;
 			case "PRECEPTION":
-				System.out.println("[*] >>>MP from " + separation[2] + " : "
-						+ separation[1]);
+				System.out.println("[*] >>>MP from " + separation[2] + " : " + separation[1]);
 				break;
 			case "DENIED":
-				System.out
-						.println("[*] DENIED this pseudo is already used or the personne you are trying to contact doesnt exist");
+				System.out.println(
+						"[*] DENIED this pseudo is already used or the personne you are trying to contact doesnt exist");
 				synchronized (listener) {
 					listener.setConnexionReussi(false);
 					listener.notifyAll();
@@ -160,8 +155,7 @@ public class Reception extends Thread {
 
 	public String[] leVraiSplit(String chaine) {
 		String[] premier = chaine.split("VX");
-		String[] coordonnees = premier[0].substring(1, premier[0].length() - 1)
-				.split("Y");
+		String[] coordonnees = premier[0].substring(1, premier[0].length() - 1).split("Y");
 		String[] deuxieme = premier[1].split("VY");
 		String[] troisieme = deuxieme[1].split("T");
 		String x = coordonnees[0];

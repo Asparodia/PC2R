@@ -42,7 +42,7 @@ public class IHMclient extends Application {
 
 	// INFORMATION A CONFIGURER POUR SE CONNECTER
 	protected final static int PORT = 2018;
-	protected final static String HOST = "ppti";
+	protected final static String HOST = "ppti-14-502-09";
 	// /////////////////////////////////////////////////
 	public final static int LARGEUR = 500;
 	public final static int HAUTEUR = 500;
@@ -57,7 +57,7 @@ public class IHMclient extends Application {
 	private static Timer timer = new Timer();
 
 	private Envoi e;
-	private DebutJeu listener = new DebutJeu();
+	private EtatJeu listener = new EtatJeu();
 	private Random random = new Random();
 
 	public IHMclient() {
@@ -67,8 +67,7 @@ public class IHMclient extends Application {
 			s = new Socket(HOST, PORT);
 			System.out.println("host : " + HOST + " port : " + PORT);
 
-			BufferedReader inChan = new BufferedReader(new InputStreamReader(
-					s.getInputStream()));
+			BufferedReader inChan = new BufferedReader(new InputStreamReader(s.getInputStream()));
 			PrintStream outChan = new PrintStream(s.getOutputStream());
 
 			Circle cercle = new Circle(20);
@@ -114,7 +113,7 @@ public class IHMclient extends Application {
 				public void run() {
 					rafraichir();
 				}
-			}, 0, 100);
+			}, 0, 10);
 			break;
 
 		case ACCUEIL:
@@ -122,7 +121,8 @@ public class IHMclient extends Application {
 			primaryStage.setResizable(false);
 			break;
 		case ATTENTE:
-
+			primaryStage.setScene(new Scene(attente()));
+			primaryStage.setResizable(false);
 			break;
 		}
 	}
@@ -139,15 +139,14 @@ public class IHMclient extends Application {
 
 	@SuppressWarnings("unlikely-arg-type")
 	private void onUpdate() {
-		synchronized (player) {
-			if (player.partieTerminee()) {
-				player.setFinJeu(false);
-
-			}
-		}
+		// synchronized (listener) {
+		// if (listener.getPartieTerminee()) {
+		// listener.setPartieTerminee(false);;
+		// changeScene(Ecran.ATTENTE);
+		// }
+		// }
 		synchronized (vehicules) {
-			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet()
-					.iterator();
+			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
 			while (iterateur.hasNext()) {
 				Entry<String, Vaisseau> courant = iterateur.next();
 				Vaisseau v = courant.getValue();
@@ -155,24 +154,27 @@ public class IHMclient extends Application {
 					if (!v.hasNode() && v.getPosX() != Double.MAX_VALUE) {
 						Polygon p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 						p.setRotate(-90);
-						p.setFill(Color.color(random.nextDouble(),
-								random.nextDouble(), random.nextDouble()));
+						p.setFill(Color.color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
 						v = courant.getValue();
 						v.setNode(p);
 						v.setLimits(root.getPrefWidth(), root.getPrefHeight());
 						v.setVelocity(new Point2D(0, 0));
 						v.setDejaAjoute(true);
-						addGameObject(
-								v,
-								courant.getValue().getPosX()
-										+ root.getPrefWidth() / 2,
-								courant.getValue().getPosY()
-										+ root.getPrefHeight() / 2);
+						addGameObject(v, v.getPosX() + root.getPrefWidth() / 2,
+								v.getPosY() + root.getPrefHeight() / 2);
 					} else if (v.getAEnlever()) {
 						removeGameObject(v);
 						vehicules.remove(v);
 					}
 					v.moveAutreJoueur();
+				} else {
+					// synchronized (listener) {
+					// if (listener.getNewPos()) {
+					// listener.setNewPos(false);
+					// removeGameObject(v);
+					// addGameObject(v, v.getPosX(), v.getPosY());
+					// }
+					// }
 				}
 				v.update();
 
@@ -185,8 +187,7 @@ public class IHMclient extends Application {
 				// System.out.println("NEW Y : " + objectif.getPosY());
 				removeGameObject(objectif);
 				objectif.update();
-				addGameObject(objectif,
-						objectif.getPosX() + root.getPrefWidth() / 2,
+				addGameObject(objectif, objectif.getPosX() + root.getPrefWidth() / 2,
 						objectif.getPosY() + root.getPrefHeight() / 2);
 				objectif.setAJour(true);
 			}
@@ -226,14 +227,13 @@ public class IHMclient extends Application {
 			changeScene(Ecran.ACCUEIL);
 		});
 		synchronized (objectif) {
-			addGameObject(objectif, objectif.getPosX() + root.getPrefWidth()
-					/ 2, objectif.getPosY() + root.getPrefHeight() / 2);
+			addGameObject(objectif, objectif.getPosX() + root.getPrefWidth() / 2,
+					objectif.getPosY() + root.getPrefHeight() / 2);
 		}
 		Polygon p;
 		Vaisseau vaisseauAAjouter;
 		synchronized (vehicules) {
-			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet()
-					.iterator();
+			Iterator<Entry<String, Vaisseau>> iterateur = vehicules.entrySet().iterator();
 			while (iterateur.hasNext()) {
 				Entry<String, Vaisseau> courant = iterateur.next();
 
@@ -246,26 +246,20 @@ public class IHMclient extends Application {
 					player.setLimits(root.getPrefWidth(), root.getPrefHeight());
 					player.setVelocity(new Point2D(0, 0));
 					player.setDejaAjoute(true);
-					addGameObject(player,
-							courant.getValue().getPosX() + root.getPrefWidth()
-									/ 2,
-							courant.getValue().getPosY() + root.getPrefHeight()
-									/ 2);
+					addGameObject(player, player.getPosX() + root.getPrefWidth() / 2,
+							player.getPosY() + root.getPrefHeight() / 2);
 
 				} else {
 					p = new Polygon(0.0, 20.0, 40.0, 10.0, 0.0, 0.0);
 					p.setRotate(-90);
-					p.setFill(Color.color(random.nextDouble(),
-							random.nextDouble(), random.nextDouble()));
+					p.setFill(Color.color(random.nextDouble(), random.nextDouble(), random.nextDouble()));
 					vaisseauAAjouter = courant.getValue();
 					vaisseauAAjouter.setNode(p);
-					vaisseauAAjouter.setLimits(root.getPrefWidth(),
-							root.getPrefHeight());
+					vaisseauAAjouter.setLimits(root.getPrefWidth(), root.getPrefHeight());
 					vaisseauAAjouter.setVelocity(new Point2D(0, 0));
 					vaisseauAAjouter.setDejaAjoute(true);
-					addGameObject(vaisseauAAjouter, courant.getValue()
-							.getPosX() + root.getPrefWidth() / 2, courant
-							.getValue().getPosY() + root.getPrefHeight() / 2);
+					addGameObject(vaisseauAAjouter, vaisseauAAjouter.getPosX() + root.getPrefWidth() / 2,
+							vaisseauAAjouter.getPosY() + root.getPrefHeight() / 2);
 				}
 			}
 		}
@@ -324,6 +318,31 @@ public class IHMclient extends Application {
 			}
 
 		});
+		return bp;
+	}
+
+	private Parent attente() {
+		BorderPane bp = new BorderPane();
+		bp.setPadding(new Insets(10, 50, 50, 50));
+
+		HBox hb = new HBox();
+		hb.setPadding(new Insets(20, 20, 20, 30));
+
+		GridPane gridPane = new GridPane();
+		gridPane.setPadding(new Insets(20, 20, 20, 20));
+		gridPane.setHgap(5);
+		gridPane.setVgap(5);
+		Text text = new Text("Continuer à jouer ?");
+		text.setFont(Font.font("Times New Roman", 30));
+		Button btnContinuer = new Button("Oui");
+		Button btnQuitter = new Button("Non");
+		hb.getChildren().add(text);
+		bp.setTop(hb);
+		bp.setCenter(gridPane);
+		bp.getChildren().add(btnQuitter);
+		bp.setLeft(btnQuitter);
+		bp.getChildren().add(btnContinuer);
+		bp.setRight(btnContinuer);
 		return bp;
 	}
 

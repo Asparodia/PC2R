@@ -17,7 +17,7 @@ public class Vaisseau extends GameObject {
 	private double maxWidth;
 	private double maxHeight;
 
-	private final static double CAPVITESSE = 10.0;
+	private final static double CAPVITESSE = 3.0;
 	private final static double THRUST = 1;
 	private final static double CLOCK = 6.0;
 	private final static double ANTICLOCK = -6.0;

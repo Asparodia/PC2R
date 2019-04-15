@@ -5,6 +5,7 @@ import socket
 import threading
 import random
 import math
+import os
 
 #############################" VARIABLES ##############################"
 # "LAPTOP-IT1VP3Q2"
@@ -323,7 +324,7 @@ class Arena(threading.Thread):
             finally:
                 mutexVehicules.release()
                 del m
-            tick = Tickrate(0.05)
+            tick = Tickrate(0.005)
             tick.start()
             i = 0
             while not self.winner:
@@ -453,8 +454,9 @@ class Server:
 
 
 while True:
-    print ("Veuillez entre le hostname : ")
-    h = input()
+    """print ("Veuillez entre le hostname : ")
+    h = input()"""
     print ("Veuillez entre le port : ")
     p = input()
+    h = os.uname()[1]
     server = Server(h,int(p))
